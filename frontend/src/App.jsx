@@ -96,6 +96,30 @@ function formatVectorParam(vector) {
   return vector.map((value) => Number(value).toFixed(2)).join(",");
 }
 
+function buildShareUrl({
+  matrix,
+  bVector,
+  operation,
+  caseId = "",
+  defenseMode = false,
+}) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("m", formatMatrixParam(matrix));
+  url.searchParams.set("b", formatVectorParam(bVector));
+  url.searchParams.set("op", operation);
+  if (caseId) {
+    url.searchParams.set("case", caseId);
+  } else {
+    url.searchParams.delete("case");
+  }
+  if (defenseMode) {
+    url.searchParams.set("view", "defense");
+  } else {
+    url.searchParams.delete("view");
+  }
+  return url.toString();
+}
+
 function multiplyMatrixVector(matrix, point) {
   return [
     matrix[0][0] * point[0] + matrix[0][1] * point[1],
@@ -253,6 +277,12 @@ function App() {
     window.history.replaceState({}, "", nextUrl);
   }, [matrix, bVector, operation, activeCaseId, defenseMode]);
 
+  useEffect(() => {
+    if (!shareMessage) return undefined;
+    const timer = window.setTimeout(() => setShareMessage(""), 3200);
+    return () => window.clearTimeout(timer);
+  }, [shareMessage]);
+
   const summaryCards = useMemo(() => {
     const results = analysis?.results ?? {};
     return [
@@ -313,7 +343,13 @@ function App() {
   };
 
   const copyShareLink = async () => {
-    const shareUrl = window.location.href;
+    const shareUrl = buildShareUrl({
+      matrix,
+      bVector,
+      operation,
+      caseId: activeCaseId,
+      defenseMode,
+    });
     try {
       await navigator.clipboard.writeText(shareUrl);
       setShareMessage(
@@ -326,12 +362,33 @@ function App() {
     }
   };
 
+  const copyPresetLink = async ({
+    label,
+    nextDefenseMode = false,
+    nextCaseId = "",
+  }) => {
+    const shareUrl = buildShareUrl({
+      matrix,
+      bVector,
+      operation,
+      caseId: nextCaseId,
+      defenseMode: nextDefenseMode,
+    });
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMessage(`已复制${label}。`);
+    } catch {
+      setShareMessage(`复制失败，请手动复制这个链接：${shareUrl}`);
+    }
+  };
+
   const diagnostics = analysis?.diagnostics ?? {};
   const results = analysis?.results ?? {};
   const sections = siteContent?.sections ?? [];
   const quickstart = siteContent?.quickstart ?? [];
   const faq = siteContent?.faq ?? [];
   const deployment = siteContent?.deployment ?? [];
+  const modeLabel = defenseMode ? "答辩模式" : "公开模式";
 
   return (
     <div className={`app-shell ${defenseMode ? "defense-mode" : ""}`}>
@@ -421,6 +478,78 @@ function App() {
           </div>
         </section>
 
+        <section className="quick-links-section">
+          <div className="section-head">
+            <div>
+              <div className="eyebrow">Quick Access</div>
+              <h2>一键复制更适合分享的链接</h2>
+            </div>
+            <p>
+              现在不仅能复制当前页面，还能快速复制更适合发给评委、老师或队友的公开版和答辩版链接。
+            </p>
+          </div>
+
+          <div className="quick-links-grid">
+            <article className="quick-link-card">
+              <span>Public Link</span>
+              <strong>当前工作台公开链接</strong>
+              <p>适合发给老师或评委自由浏览，保持当前矩阵和运算状态。</p>
+              <button
+                className="secondary inline-button"
+                onClick={() =>
+                  copyPresetLink({
+                    label: "当前工作台公开链接",
+                    nextDefenseMode: false,
+                    nextCaseId: activeCaseId,
+                  })
+                }
+              >
+                复制公开链接
+              </button>
+            </article>
+
+            <article className="quick-link-card">
+              <span>Defense Link</span>
+              <strong>当前工作台答辩链接</strong>
+              <p>会直接进入更聚焦的展示视图，适合现场答辩或投屏展示。</p>
+              <button
+                className="secondary inline-button"
+                onClick={() =>
+                  copyPresetLink({
+                    label: "答辩模式链接",
+                    nextDefenseMode: true,
+                    nextCaseId: activeCaseId,
+                  })
+                }
+              >
+                复制答辩链接
+              </button>
+            </article>
+
+            <article className="quick-link-card">
+              <span>Case Link</span>
+              <strong>{activeCase ? activeCase.title : "当前默认案例"}</strong>
+              <p>
+                {activeCase
+                  ? "把当前案例和当前工作台状态一起发出去，对方能直接进入同一个讲解情境。"
+                  : "如果还没有选案例，这里会复制当前默认工作台状态。"}
+              </p>
+              <button
+                className="secondary inline-button"
+                onClick={() =>
+                  copyPresetLink({
+                    label: activeCase ? `${activeCase.title} 案例链接` : "当前默认案例链接",
+                    nextDefenseMode: defenseMode,
+                    nextCaseId: activeCaseId,
+                  })
+                }
+              >
+                复制案例链接
+              </button>
+            </article>
+          </div>
+        </section>
+
         {!defenseMode && (
           <>
             <section className="value-strip">
@@ -477,6 +606,21 @@ function App() {
               </p>
             </div>
           )}
+
+          <div className="workspace-status-bar">
+            <div className="status-chip">
+              <span>当前模式</span>
+              <strong>{modeLabel}</strong>
+            </div>
+            <div className="status-chip">
+              <span>当前案例</span>
+              <strong>{activeCase?.title || "自定义矩阵"}</strong>
+            </div>
+            <div className="status-chip">
+              <span>分析状态</span>
+              <strong>{loading ? "计算中..." : "已就绪"}</strong>
+            </div>
+          </div>
 
           <div className="workspace-shell">
             <aside className="panel algebra-panel">
@@ -650,6 +794,7 @@ function App() {
                   <strong>步骤卡片</strong>
                   <span>Explainable Math</span>
                 </div>
+                {loading && <p className="panel-hint">正在请求新的分析结果，请稍等。</p>}
                 {steps.length ? (
                   <div className="steps-list">
                     {steps.map((step, index) => (

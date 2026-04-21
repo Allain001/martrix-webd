@@ -161,6 +161,7 @@ main {
 }
 
 .hero-section,
+.quick-links-section,
 .guide-section,
 .workspace-section,
 .cases-section,
@@ -314,7 +315,9 @@ main {
 .sections-strip,
 .guide-grid,
 .faq-grid,
-.deployment-grid {
+.deployment-grid,
+.quick-links-grid,
+.workspace-status-bar {
   display: grid;
   gap: 16px;
   margin-top: 20px;
@@ -326,6 +329,45 @@ main {
 
 .guide-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quick-links-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quick-link-card {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow);
+}
+
+.quick-link-card span,
+.status-chip span {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quick-link-card strong,
+.status-chip strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.08rem;
+}
+
+.quick-link-card p,
+.panel-hint {
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.inline-button {
+  margin-top: 14px;
+  min-height: 42px;
 }
 
 .value-card {
@@ -386,6 +428,19 @@ main {
   grid-template-columns: 290px minmax(0, 1fr) 320px;
   gap: 18px;
   align-items: start;
+}
+
+.workspace-status-bar {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.status-chip {
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(36, 107, 206, 0.08);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow);
 }
 
 .defense-mode .workspace-shell {
@@ -606,6 +661,10 @@ svg {
   border: 1px solid rgba(41, 88, 145, 0.08);
 }
 
+.panel-hint {
+  margin: 0 0 12px;
+}
+
 .steps-head {
   display: flex;
   align-items: end;
@@ -740,8 +799,10 @@ svg {
 
 @media (max-width: 1260px) {
   .hero-section,
+  .quick-links-grid,
   .guide-grid,
   .workspace-shell,
+  .workspace-status-bar,
   .value-strip,
   .case-grid,
   .sections-strip,
