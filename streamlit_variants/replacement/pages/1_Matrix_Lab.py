@@ -119,7 +119,7 @@ def draw_scene(points: np.ndarray, transformed: np.ndarray, square: np.ndarray, 
     return figure
 
 
-st.set_page_config(page_title="MatrixVis | 二维矩阵实验室", layout="wide")
+st.set_page_config(page_title="martrixvis | 二维矩阵实验室", layout="wide")
 st.title("二维矩阵实验室")
 st.write("用图形方式解释 2×2 矩阵如何对整个平面施加动作。")
 
@@ -172,7 +172,7 @@ phase_label = "阶段 1：旋转" if t <= 1.0 else "阶段 2：拉伸" if t <= 2
 plot_col, info_col = st.columns([3, 2])
 with plot_col:
     st.subheader("图形舞台")
-    figure = draw_scene(points, transformed_points, square, transformed_square, matrix, show_arrows, f"MatrixVis 变换视图 | {phase_label}")
+    figure = draw_scene(points, transformed_points, square, transformed_square, matrix, show_arrows, f"martrixvis 变换视图 | {phase_label}")
     st.pyplot(figure, width="stretch")
 
 with info_col:

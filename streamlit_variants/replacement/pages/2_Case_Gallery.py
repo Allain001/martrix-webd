@@ -48,9 +48,9 @@ def plot_case(matrix: np.ndarray) -> plt.Figure:
     return figure
 
 
-st.set_page_config(page_title="MatrixVis | 案例走廊", layout="wide")
+st.set_page_config(page_title="martrixvis | 案例走廊", layout="wide")
 st.title("案例走廊")
-st.write("保留参考仓库的模块式浏览体验，但把内容换成更适合 MatrixVis 的教学场景。")
+st.write("保留多模块浏览体验，但把内容换成更适合 martrixvis 的教学场景。")
 
 selected_case = st.sidebar.selectbox("选择案例", list(CASES.keys()))
 case = CASES[selected_case]

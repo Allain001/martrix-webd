@@ -24,7 +24,7 @@ def autoplay_gif_panel(gif_path: Path, title: str, height: int = 360) -> None:
     components.html(html, height=height)
 
 
-st.set_page_config(page_title="MatrixVis Studio", layout="wide")
+st.set_page_config(page_title="martrixvis", layout="wide")
 
 st.markdown(
     """
@@ -78,10 +78,10 @@ st.markdown(
     }
     </style>
     <div class="hero">
-        <div class="hero-kicker">MatrixVis Studio</div>
-        <div class="hero-title">仓库替换版 MatrixVis</div>
+        <div class="hero-kicker">martrixvis</div>
+        <div class="hero-title">martrixvis</div>
         <div class="hero-copy">
-            这一版保留了参考仓库那种“多模块首页”的组织方式，但每个模块都换成了 MatrixVis 自己的内容。
+            这一版保留了多模块首页的组织方式，但每个模块都已经换成了 martrixvis 自己的内容。
             你现在看到的是一个更像课程实验室的网站入口，而不是精简产品页。
         </div>
     </div>
@@ -89,7 +89,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("### MatrixVis 模块总览")
+st.markdown("### martrixvis 模块总览")
 
 row1_col1, row1_col2 = st.columns(2)
 with row1_col1:

@@ -12,7 +12,7 @@ def determinant_story(value: float) -> str:
     return "方向保持不变，主要表现为旋转、缩放或剪切。"
 
 
-st.set_page_config(page_title="MatrixVis | 几何讲解板", layout="wide")
+st.set_page_config(page_title="martrixvis | 几何讲解板", layout="wide")
 st.title("几何讲解板")
 st.write("这一页不强调复杂交互，而是专门服务于讲解：把 det、eigen、rank 讲成可读的几何故事。")
 

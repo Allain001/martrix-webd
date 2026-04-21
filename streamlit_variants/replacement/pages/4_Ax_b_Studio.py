@@ -68,7 +68,7 @@ def get_intersection_line(p1, p2, extent: int):
     return point + scale[:, np.newaxis] * (direction / np.linalg.norm(direction))
 
 
-st.set_page_config(page_title="MatrixVis | Ax = b 工作站", layout="wide")
+st.set_page_config(page_title="martrixvis | Ax = b 工作站", layout="wide")
 st.title("Ax = b 工作站")
 st.write("保留参考仓库中最有展示力的 3D 平面系统，但把叙事切成你们自己的最小二乘解释。")
 

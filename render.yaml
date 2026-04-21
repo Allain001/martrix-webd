@@ -6,7 +6,7 @@ services:
     autoDeploy: true
     healthCheckPath: /api/health
   - type: web
-    name: matrixvis-streamlit-lite
+    name: martrixvis-lite
     env: docker
     plan: free
     autoDeploy: true
@@ -15,7 +15,7 @@ services:
     dockerContext: .
     healthCheckPath: /
   - type: web
-    name: matrixvis-streamlit-gallery
+    name: martrixvis
     env: docker
     plan: free
     autoDeploy: true

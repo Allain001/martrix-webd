@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).parent
 VIDEOS_DIR = BASE_DIR / "videos"
 
 
-st.set_page_config(page_title="MatrixVis Studio", layout="wide")
+st.set_page_config(page_title="martrixvis lite", layout="wide")
 
 st.markdown(
     """
@@ -65,7 +65,7 @@ st.markdown(
     }
     </style>
     <div class="hero">
-        <div class="kicker">MatrixVis Studio</div>
+        <div class="kicker">martrixvis lite</div>
         <div class="title">矩阵可视化实验室</div>
         <div class="body">
             这是一版真正建立在可交互数学仓库内容上的 MatrixVis 网站入口。
