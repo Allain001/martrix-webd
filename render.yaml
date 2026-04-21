@@ -23,3 +23,12 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /
+  - type: web
+    name: martrixvis-zh
+    env: docker
+    plan: free
+    autoDeploy: true
+    rootDir: streamlit_variants/repo_skin_zh
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /

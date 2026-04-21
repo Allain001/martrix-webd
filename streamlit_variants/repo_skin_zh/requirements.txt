@@ -1,0 +1,7 @@
+streamlit
+numpy
+plotly
+matplotlib
+pillow
+streamlit-plotly-events
+imageio
