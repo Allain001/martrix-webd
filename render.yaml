@@ -5,3 +5,21 @@ services:
     plan: free
     autoDeploy: true
     healthCheckPath: /api/health
+  - type: web
+    name: matrixvis-streamlit-lite
+    env: docker
+    plan: free
+    autoDeploy: true
+    rootDir: streamlit_variants/lite
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+  - type: web
+    name: matrixvis-streamlit-gallery
+    env: docker
+    plan: free
+    autoDeploy: true
+    rootDir: streamlit_variants/replacement
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
