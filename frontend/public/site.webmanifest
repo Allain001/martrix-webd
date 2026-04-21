@@ -1,0 +1,16 @@
+{
+  "name": "MatrixVis",
+  "short_name": "MatrixVis",
+  "description": "公网可访问的矩阵可视化网站",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f8ff",
+  "theme_color": "#246bce",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
