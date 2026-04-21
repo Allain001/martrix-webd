@@ -16,25 +16,16 @@ const OPERATIONS = [
   { value: "solve", label: "求解 Ax = b" },
 ];
 
-const VALUE_PROPS = [
-  {
-    title: "任何人都能打开",
-    body: "它的目标已经不是本地演示，而是一个发链接就能访问的公开网站。",
-  },
-  {
-    title: "像数学工具一样工作",
-    body: "输入矩阵、拖动点、观察图形、阅读解释，整个过程都在同一个工作台里完成。",
-  },
-  {
-    title: "兼顾产品感与答辩感",
-    body: "既适合公开访问，也适合比赛答辩时切到更聚焦的展示模式。",
-  },
+const GRAPH_MODES = [
+  { value: "split", label: "双视图" },
+  { value: "source", label: "原始平面" },
+  { value: "target", label: "变换平面" },
 ];
 
-const ROADMAP = [
-  "今天先把网站骨架、工作台布局和部署底座打稳。",
-  "接下来补案例详情、帮助引导、对外发布说明和公开访问叙事。",
-  "最后两天集中做云部署、答辩模式、移动端和最后收口。",
+const INSPECTOR_TABS = [
+  { value: "results", label: "结果" },
+  { value: "steps", label: "步骤" },
+  { value: "share", label: "分享" },
 ];
 
 const OPERATIONS_SET = new Set(OPERATIONS.map((item) => item.value));
@@ -142,12 +133,20 @@ function solutionLabel(solution) {
 
 function geometryNarrative(determinantEstimate) {
   if (Math.abs(determinantEstimate) < 0.1) {
-    return "面积几乎塌缩，说明这个变换已经接近把平面压扁。";
+    return "面积接近塌缩，说明这个变换正在把平面压扁。";
   }
   if (determinantEstimate < 0) {
-    return "方向发生翻转，说明这个变换带有镜像性质。";
+    return "方向发生翻转，说明这个变换包含镜像性质。";
   }
   return "方向保持不变，主要体现拉伸、旋转或剪切。";
+}
+
+function matrixFormula(matrix) {
+  return `[[${matrix[0].join(", ")}], [${matrix[1].join(", ")}]]`;
+}
+
+function vectorFormula(vector) {
+  return `[${vector.join(", ")}]`;
 }
 
 function App() {
@@ -157,6 +156,8 @@ function App() {
   const [operation, setOperation] = useState(initialState.operation);
   const [activeCaseId, setActiveCaseId] = useState(initialState.caseId);
   const [defenseMode, setDefenseMode] = useState(initialState.view === "defense");
+  const [graphMode, setGraphMode] = useState("split");
+  const [inspectorTab, setInspectorTab] = useState("results");
   const [probePoint, setProbePoint] = useState([1.35, 0.95]);
   const [cases, setCases] = useState([]);
   const [siteContent, setSiteContent] = useState(null);
@@ -324,43 +325,32 @@ function App() {
     return [];
   }, [analysis]);
 
-  const applyCase = (item) => {
-    setMatrix(item.matrix);
-    setBVector(item.b ?? DEFAULT_B);
-    setOperation(item.operation ?? "all");
-    setActiveCaseId(item.id);
-    setProbePoint([1.2, 0.8]);
-    fetchAnalysis(item.operation ?? "all", item.matrix, item.b ?? DEFAULT_B);
-  };
+  const quickFacts = useMemo(() => {
+    const quickstart = siteContent?.quickstart ?? [];
+    const deployment = siteContent?.deployment ?? [];
+    return [...quickstart.slice(0, 2), ...deployment.slice(0, 1)];
+  }, [siteContent]);
 
-  const resetWorkspace = () => {
-    setMatrix(DEFAULT_MATRIX);
-    setBVector(DEFAULT_B);
-    setOperation("all");
-    setActiveCaseId("");
-    setProbePoint([1.35, 0.95]);
-    fetchAnalysis("all", DEFAULT_MATRIX, DEFAULT_B);
-  };
-
-  const copyShareLink = async () => {
-    const shareUrl = buildShareUrl({
-      matrix,
-      bVector,
-      operation,
-      caseId: activeCaseId,
-      defenseMode,
-    });
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setShareMessage(
-        defenseMode
-          ? "已复制当前答辩视图链接，别人打开后会直接进入同样的展示模式。"
-          : "已复制当前工作台链接，别人打开后会看到相同的矩阵状态。",
-      );
-    } catch {
-      setShareMessage(`复制失败，请手动复制这个链接：${shareUrl}`);
-    }
-  };
+  const algebraItems = useMemo(() => {
+    return [
+      {
+        label: "矩阵 A",
+        value: matrixFormula(roundedMatrix),
+      },
+      {
+        label: "向量 b",
+        value: vectorFormula(bVector),
+      },
+      {
+        label: "当前模式",
+        value: OPERATIONS.find((item) => item.value === operation)?.label || "全链路分析",
+      },
+      {
+        label: "当前场景",
+        value: activeCase?.title || "自定义矩阵",
+      },
+    ];
+  }, [roundedMatrix, bVector, operation, activeCase]);
 
   const copyPresetLink = async ({
     label,
@@ -376,36 +366,41 @@ function App() {
     });
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setShareMessage(`已复制${label}。`);
+      setShareMessage(`已复制${label}`);
     } catch {
       setShareMessage(`复制失败，请手动复制这个链接：${shareUrl}`);
     }
   };
 
+  const resetWorkspace = () => {
+    setMatrix(DEFAULT_MATRIX);
+    setBVector(DEFAULT_B);
+    setOperation("all");
+    setActiveCaseId("");
+    setProbePoint([1.35, 0.95]);
+    fetchAnalysis("all", DEFAULT_MATRIX, DEFAULT_B);
+  };
+
   const diagnostics = analysis?.diagnostics ?? {};
   const results = analysis?.results ?? {};
-  const sections = siteContent?.sections ?? [];
-  const quickstart = siteContent?.quickstart ?? [];
-  const faq = siteContent?.faq ?? [];
-  const deployment = siteContent?.deployment ?? [];
-  const modeLabel = defenseMode ? "答辩模式" : "公开模式";
 
   return (
     <div className={`app-shell ${defenseMode ? "defense-mode" : ""}`}>
       <header className="topbar">
-        <div className="brand">
+        <div className="brand-group">
           <div className="brand-mark">M</div>
           <div>
-            <div className="eyebrow">MatrixVis Public Web App</div>
-            <strong>MatrixVis</strong>
+            <div className="brand-kicker">MatrixVis Lab</div>
+            <h1>MatrixVis</h1>
           </div>
         </div>
-        <nav className="nav-links">
-          <a href="#workspace">实验室</a>
-          <a href="#cases">案例</a>
-          <a href="#guide">帮助</a>
-          <a href="#roadmap">路线图</a>
-        </nav>
+
+        <div className="topbar-center">
+          <span>场景化矩阵变换实验室</span>
+          <span>2×2 交互几何</span>
+          <span>GeoGebra x Immersive Math</span>
+        </div>
+
         <div className="topbar-actions">
           <button
             className={`mode-toggle ${defenseMode ? "active" : ""}`}
@@ -413,387 +408,259 @@ function App() {
           >
             {defenseMode ? "退出答辩模式" : "切换答辩模式"}
           </button>
-          <a className="launch-link" href="#workspace">
-            进入工作台
-          </a>
+          <button className="ghost-button" onClick={() => copyPresetLink({
+            label: "当前工作台链接",
+            nextDefenseMode: defenseMode,
+            nextCaseId: activeCaseId,
+          })}>
+            复制链接
+          </button>
         </div>
       </header>
 
-      <main>
-        <section className="hero-section">
-          <div className="hero-copy">
-            <div className="eyebrow">
-              {defenseMode ? "Defense View" : "Version 2 · Public Product Direction"}
-            </div>
-            <h1>
-              {defenseMode
-                ? "用更聚焦的展示视图讲清楚 MatrixVis 的矩阵故事"
-                : "把 MatrixVis 做成任何人都能打开的线性代数网站"}
-            </h1>
+      <main className="app-main">
+        <section className="command-banner">
+          <div>
+            <span className="section-label">Scene</span>
+            <strong>{activeCase?.title || "自定义矩阵实验"}</strong>
             <p>
-              {defenseMode
-                ? "答辩模式会弱化外围说明内容，把注意力集中到矩阵输入、图形联动和结果解释上，更适合现场展示。"
-                : "这不是本地演示壳，而是一个真正面向公开访问的数学交互产品。我们保留矩阵计算能力，把体验升级成类似 GeoGebra 的图形工作台。"}
+              {activeCase?.story ||
+                "拖动左侧探针点，观察单位方格、基向量和结果面板如何同步变化。"}
             </p>
-            <div className="hero-actions">
-              <a className="primary-link" href="#workspace">
-                {defenseMode ? "直接进入展示工作台" : "现在体验实验室"}
-              </a>
-              {!defenseMode && (
-                <a className="ghost-link" href="#guide">
-                  看看怎么使用
-                </a>
-              )}
-              <button className="secondary share-button" onClick={copyShareLink}>
-                复制分享链接
-              </button>
-            </div>
-            {shareMessage && <p className="share-message">{shareMessage}</p>}
           </div>
-
-          <div className="hero-board">
-            <div className="hero-board-head">
-              <span>{defenseMode ? "当前展示状态" : "公开站点定位"}</span>
-              <strong>
-                {defenseMode
-                  ? "聚焦图形联动、步骤解释和案例切换的现场演示视图"
-                  : siteContent?.subtitle || "GeoGebra 风格的矩阵可视化网站"}
-              </strong>
-            </div>
-            <div className="hero-metric-grid">
-              <MetricCard
-                label="站点形态"
-                value={defenseMode ? "答辩展示中" : "浏览器直接访问"}
-              />
-              <MetricCard label="交互核心" value="图形 + 代数同步" />
-              <MetricCard label="当前矩阵" value={diagnostics.shape || "2 x 2"} />
-              <MetricCard
-                label="探针点"
-                value={`(${roundNumber(probePoint[0], 2)}, ${roundNumber(
-                  probePoint[1],
-                  2,
-                )})`}
-              />
-            </div>
+          <div className="banner-actions">
+            <button
+              className="primary-button"
+              onClick={() => fetchAnalysis()}
+              disabled={loading}
+            >
+              {loading ? "计算中..." : "刷新分析"}
+            </button>
+            <button className="ghost-button" onClick={resetWorkspace}>
+              重置实验
+            </button>
           </div>
         </section>
 
-        <section className="quick-links-section">
-          <div className="section-head">
-            <div>
-              <div className="eyebrow">Quick Access</div>
-              <h2>一键复制更适合分享的链接</h2>
+        {shareMessage && <div className="flash-message">{shareMessage}</div>}
+
+        <section className="app-frame">
+          <aside className="side-pane control-pane">
+            <div className="pane-header">
+              <span className="section-label">Objects</span>
+              <strong>代数与场景</strong>
             </div>
-            <p>
-              现在不仅能复制当前页面，还能快速复制更适合发给评委、老师或队友的公开版和答辩版链接。
-            </p>
-          </div>
 
-          <div className="quick-links-grid">
-            <article className="quick-link-card">
-              <span>Public Link</span>
-              <strong>当前工作台公开链接</strong>
-              <p>适合发给老师或评委自由浏览，保持当前矩阵和运算状态。</p>
-              <button
-                className="secondary inline-button"
-                onClick={() =>
-                  copyPresetLink({
-                    label: "当前工作台公开链接",
-                    nextDefenseMode: false,
-                    nextCaseId: activeCaseId,
-                  })
-                }
-              >
-                复制公开链接
-              </button>
-            </article>
-
-            <article className="quick-link-card">
-              <span>Defense Link</span>
-              <strong>当前工作台答辩链接</strong>
-              <p>会直接进入更聚焦的展示视图，适合现场答辩或投屏展示。</p>
-              <button
-                className="secondary inline-button"
-                onClick={() =>
-                  copyPresetLink({
-                    label: "答辩模式链接",
-                    nextDefenseMode: true,
-                    nextCaseId: activeCaseId,
-                  })
-                }
-              >
-                复制答辩链接
-              </button>
-            </article>
-
-            <article className="quick-link-card">
-              <span>Case Link</span>
-              <strong>{activeCase ? activeCase.title : "当前默认案例"}</strong>
-              <p>
-                {activeCase
-                  ? "把当前案例和当前工作台状态一起发出去，对方能直接进入同一个讲解情境。"
-                  : "如果还没有选案例，这里会复制当前默认工作台状态。"}
-              </p>
-              <button
-                className="secondary inline-button"
-                onClick={() =>
-                  copyPresetLink({
-                    label: activeCase ? `${activeCase.title} 案例链接` : "当前默认案例链接",
-                    nextDefenseMode: defenseMode,
-                    nextCaseId: activeCaseId,
-                  })
-                }
-              >
-                复制案例链接
-              </button>
-            </article>
-          </div>
-        </section>
-
-        {!defenseMode && (
-          <>
-            <section className="value-strip">
-              {VALUE_PROPS.map((item) => (
-                <article className="value-card" key={item.title}>
-                  <strong>{item.title}</strong>
-                  <p>{item.body}</p>
-                </article>
+            <div className="object-list">
+              {algebraItems.map((item) => (
+                <div className="object-row" key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
               ))}
-            </section>
-
-            <section className="guide-section" id="guide">
-              <div className="section-head">
-                <div>
-                  <div className="eyebrow">Quick Start</div>
-                  <h2>第一次访问也能立刻上手</h2>
-                </div>
-                <p>
-                  一个真正面向公网的网站不能只靠会演示的人来带路，所以这里把使用路径讲清楚。
-                </p>
-              </div>
-
-              <div className="guide-grid">
-                {quickstart.map((item, index) => (
-                  <article className="guide-card" key={item.title}>
-                    <span>Step {index + 1}</span>
-                    <strong>{item.title}</strong>
-                    <p>{item.body}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
-          </>
-        )}
-
-        <section className="workspace-section" id="workspace">
-          <div className="section-head">
-            <div>
-              <div className="eyebrow">Core Workspace</div>
-              <h2>{defenseMode ? "答辩展示工作台" : "GeoGebra 风格的矩阵工作台"}</h2>
             </div>
-            <p>
-              {defenseMode
-                ? "当前视图专门为展示而优化，把主要注意力集中到左侧输入、中央图形和右侧解释。"
-                : "左侧是代数输入和案例切换，中间是图形画布，右侧是结果摘要和步骤解释。这会是后续公网版本的核心界面。"}
-            </p>
-          </div>
 
-          {defenseMode && (
-            <div className="defense-banner">
-              <strong>答辩模式已开启</strong>
-              <p>
-                这个视图会隐藏部分外围说明，让现场观众更快聚焦在图形联动、案例切换和结果讲解上。
-              </p>
+            <div className="pane-header compact">
+              <span className="section-label">Cases</span>
+              <strong>案例库</strong>
             </div>
-          )}
-
-          <div className="workspace-status-bar">
-            <div className="status-chip">
-              <span>当前模式</span>
-              <strong>{modeLabel}</strong>
+            <div className="case-stack">
+              {cases.map((item) => (
+                <button
+                  className={`case-button ${item.id === activeCaseId ? "active" : ""}`}
+                  key={item.id}
+                  onClick={() => {
+                    setMatrix(item.matrix);
+                    setBVector(item.b ?? DEFAULT_B);
+                    setOperation(item.operation ?? "all");
+                    setActiveCaseId(item.id);
+                    setProbePoint([1.2, 0.8]);
+                    fetchAnalysis(item.operation ?? "all", item.matrix, item.b ?? DEFAULT_B);
+                  }}
+                >
+                  <span>{item.title}</span>
+                  <strong>{item.subtitle}</strong>
+                </button>
+              ))}
             </div>
-            <div className="status-chip">
-              <span>当前案例</span>
-              <strong>{activeCase?.title || "自定义矩阵"}</strong>
+
+            <div className="pane-header compact">
+              <span className="section-label">Input</span>
+              <strong>矩阵控制台</strong>
             </div>
-            <div className="status-chip">
-              <span>分析状态</span>
-              <strong>{loading ? "计算中..." : "已就绪"}</strong>
-            </div>
-          </div>
 
-          <div className="workspace-shell">
-            <aside className="panel algebra-panel">
-              <div className="panel-header">
-                <div className="panel-kicker">Algebra</div>
-                <h3>输入与控制</h3>
-              </div>
-
-              <label className="field-block">
-                <span>矩阵 A</span>
-                <div className="matrix-grid">
-                  {matrix.map((row, rowIndex) =>
-                    row.map((value, colIndex) => (
-                      <input
-                        key={`${rowIndex}-${colIndex}`}
-                        type="number"
-                        step="0.1"
-                        value={value}
-                        onChange={(event) => {
-                          const next = matrix.map((sourceRow) => [...sourceRow]);
-                          next[rowIndex][colIndex] = Number(event.target.value);
-                          setMatrix(next);
-                          setActiveCaseId("");
-                        }}
-                      />
-                    )),
-                  )}
-                </div>
-              </label>
-
-              <label className="field-block">
-                <span>向量 b</span>
-                <div className="vector-grid">
-                  {bVector.map((value, index) => (
+            <label className="field-block">
+              <span>矩阵 A</span>
+              <div className="matrix-grid">
+                {matrix.map((row, rowIndex) =>
+                  row.map((value, colIndex) => (
                     <input
-                      key={index}
+                      key={`${rowIndex}-${colIndex}`}
                       type="number"
                       step="0.1"
                       value={value}
                       onChange={(event) => {
-                        const next = [...bVector];
-                        next[index] = Number(event.target.value);
-                        setBVector(next);
+                        const next = matrix.map((sourceRow) => [...sourceRow]);
+                        next[rowIndex][colIndex] = Number(event.target.value);
+                        setMatrix(next);
                         setActiveCaseId("");
                       }}
                     />
-                  ))}
-                </div>
-              </label>
-
-              <label className="field-block">
-                <span>分析模式</span>
-                <select
-                  value={operation}
-                  onChange={(event) => {
-                    setOperation(event.target.value);
-                    setActiveCaseId("");
-                  }}
-                >
-                  {OPERATIONS.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="button-row">
-                <button onClick={() => fetchAnalysis()} disabled={loading}>
-                  {loading ? "分析中..." : "开始分析"}
-                </button>
-                <button className="secondary" onClick={resetWorkspace}>
-                  重置
-                </button>
+                  )),
+                )}
               </div>
+            </label>
 
-              <div className="mini-note">
-                <strong>{defenseMode ? "展示提醒" : "产品方向"}</strong>
-                <p>
-                  {defenseMode
-                    ? "建议先切一个案例，再拖动左图探针点，最后带着观众读右侧结果区和步骤卡片。"
-                    : "后续这里会继续扩展成案例库、历史记录、步骤回放、发布分享和课堂模式入口。"}
-                </p>
-              </div>
-
-              <div className="mini-note">
-                <strong>公开访问能力</strong>
-                <p>
-                  当前工作台状态会写入 URL 参数，便于直接分享给老师、队友或评委。
-                </p>
-              </div>
-            </aside>
-
-            <section className="panel graphics-panel">
-              <div className="panel-header">
-                <div className="panel-kicker">Graphics</div>
-                <h3>图形视图</h3>
-              </div>
-
-              <div className="stage-caption">
-                <strong>拖动左图橙色探针点</strong>
-                <p>
-                  单位方格、基向量和对应点会同步变化，让矩阵运算从符号变成视觉体验。
-                </p>
-              </div>
-
-              <TransformWorkspace
-                matrix={roundedMatrix}
-                probePoint={probePoint}
-                onProbeChange={setProbePoint}
-              />
-
-              <div className="graphics-footer">
-                <article>
-                  <span>原始点</span>
-                  <strong>
-                    ({roundNumber(probePoint[0], 2)}, {roundNumber(probePoint[1], 2)})
-                  </strong>
-                </article>
-                <article>
-                  <span>变换后</span>
-                  <strong>
-                    ({roundNumber(transformedProbe[0], 2)}, {roundNumber(
-                      transformedProbe[1],
-                      2,
-                    )})
-                  </strong>
-                </article>
-                <article>
-                  <span>几何含义</span>
-                  <strong>{geometryNarrative(determinantEstimate)}</strong>
-                </article>
-              </div>
-            </section>
-
-            <aside className="panel results-panel">
-              <div className="panel-header">
-                <div className="panel-kicker">Results</div>
-                <h3>解释与结果</h3>
-              </div>
-
-              {error && <div className="error-box">{error}</div>}
-
-              <div className="summary-grid">
-                {summaryCards.map((card) => (
-                  <article className="summary-card" key={card.label}>
-                    <span>{card.label}</span>
-                    <strong>{card.value}</strong>
-                  </article>
+            <label className="field-block">
+              <span>向量 b</span>
+              <div className="vector-grid">
+                {bVector.map((value, index) => (
+                  <input
+                    key={index}
+                    type="number"
+                    step="0.1"
+                    value={value}
+                    onChange={(event) => {
+                      const next = [...bVector];
+                      next[index] = Number(event.target.value);
+                      setBVector(next);
+                      setActiveCaseId("");
+                    }}
+                  />
                 ))}
               </div>
+            </label>
 
-              <InfoBlock title="运算模式">
-                {OPERATIONS.find((item) => item.value === operation)?.label ||
-                  "全链路分析"}
-              </InfoBlock>
-              <InfoBlock title="条件数">
-                {diagnostics.condition_number
-                  ? roundNumber(diagnostics.condition_number, 2)
-                  : "待计算"}
-              </InfoBlock>
-              <InfoBlock title="特征值">
-                {results.eigen?.values?.join(" , ") || "等待分析"}
-              </InfoBlock>
-              <InfoBlock title="方程组结论">
-                {solutionLabel(results.solution)}
-              </InfoBlock>
+            <label className="field-block">
+              <span>分析模式</span>
+              <select
+                value={operation}
+                onChange={(event) => {
+                  setOperation(event.target.value);
+                  setActiveCaseId("");
+                }}
+              >
+                {OPERATIONS.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </aside>
 
-              <section className="steps-panel">
-                <div className="steps-head">
-                  <strong>步骤卡片</strong>
-                  <span>Explainable Math</span>
+          <section className="stage-pane">
+            <div className="stage-topbar">
+              <div>
+                <span className="section-label">Stage</span>
+                <strong>
+                  {defenseMode ? "答辩演示视图" : "沉浸式矩阵变换舞台"}
+                </strong>
+              </div>
+
+              <div className="toolbar-group">
+                {GRAPH_MODES.map((mode) => (
+                  <button
+                    key={mode.value}
+                    className={`toolbar-button ${graphMode === mode.value ? "active" : ""}`}
+                    onClick={() => setGraphMode(mode.value)}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={`graph-stage graph-mode-${graphMode}`}>
+              {graphMode === "split" ? (
+                <TransformWorkspace
+                  matrix={roundedMatrix}
+                  probePoint={probePoint}
+                  onProbeChange={setProbePoint}
+                />
+              ) : (
+                <div className="single-graph-wrap">
+                  <GraphPanel
+                    title={graphMode === "source" ? "原始平面" : "变换后平面"}
+                    mode={graphMode === "source" ? "source" : "target"}
+                    matrix={roundedMatrix}
+                    probePoint={probePoint}
+                    onProbeChange={graphMode === "source" ? setProbePoint : undefined}
+                    size={480}
+                  />
                 </div>
+              )}
+            </div>
+
+            <div className="stage-readout">
+              <MetricChip label="探针点">
+                ({roundNumber(probePoint[0], 2)}, {roundNumber(probePoint[1], 2)})
+              </MetricChip>
+              <MetricChip label="变换后">
+                ({roundNumber(transformedProbe[0], 2)}, {roundNumber(transformedProbe[1], 2)})
+              </MetricChip>
+              <MetricChip label="几何提示">
+                {geometryNarrative(determinantEstimate)}
+              </MetricChip>
+            </div>
+
+            <div className="hint-strip">
+              <span>拖动左侧橙色点查看映射</span>
+              <span>切换案例快速进入讲解情境</span>
+              <span>复制答辩链接可直接进入演示视图</span>
+            </div>
+          </section>
+
+          <aside className="side-pane inspector-pane">
+            <div className="pane-header">
+              <span className="section-label">Inspector</span>
+              <strong>结果与讲解</strong>
+            </div>
+
+            <div className="tab-row">
+              {INSPECTOR_TABS.map((tab) => (
+                <button
+                  key={tab.value}
+                  className={`tab-button ${inspectorTab === tab.value ? "active" : ""}`}
+                  onClick={() => setInspectorTab(tab.value)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {error && <div className="error-box">{error}</div>}
+
+            {inspectorTab === "results" && (
+              <div className="inspector-stack">
+                <div className="summary-grid">
+                  {summaryCards.map((card) => (
+                    <article className="summary-card" key={card.label}>
+                      <span>{card.label}</span>
+                      <strong>{card.value}</strong>
+                    </article>
+                  ))}
+                </div>
+
+                <InfoBlock title="条件数">
+                  {diagnostics.condition_number
+                    ? roundNumber(diagnostics.condition_number, 2)
+                    : "待计算"}
+                </InfoBlock>
+                <InfoBlock title="特征值">
+                  {results.eigen?.values?.join(" , ") || "等待分析"}
+                </InfoBlock>
+                <InfoBlock title="方程组结论">
+                  {solutionLabel(results.solution)}
+                </InfoBlock>
+                <InfoBlock title="当前案例重点">
+                  {activeCase?.teaching_focus || "你可以直接修改矩阵，探索自己的变换。"}
+                </InfoBlock>
+              </div>
+            )}
+
+            {inspectorTab === "steps" && (
+              <div className="inspector-stack">
                 {loading && <p className="panel-hint">正在请求新的分析结果，请稍等。</p>}
                 {steps.length ? (
                   <div className="steps-list">
@@ -805,154 +672,101 @@ function App() {
                     ))}
                   </div>
                 ) : (
-                  <p className="muted">
-                    点击“开始分析”后，这里会展示与当前运算同步的推导步骤。
+                  <p className="panel-hint">
+                    点击“刷新分析”后，这里会展示与当前运算同步的推导步骤。
                   </p>
                 )}
-              </section>
-            </aside>
-          </div>
-        </section>
-
-        <section className="cases-section" id="cases">
-          <div className="section-head">
-            <div>
-              <div className="eyebrow">Case Gallery</div>
-              <h2>{defenseMode ? "一键切换展示案例" : "一键切换教学与答辩案例"}</h2>
-            </div>
-            <p>
-              {defenseMode
-                ? "现场演示时建议从这里切入，把案例变成讲解的主线。"
-                : "案例库会成为公开网站的重要入口，让第一次访问的人不用先懂参数，也能立刻看到效果。"}
-            </p>
-          </div>
-
-          <div className="case-grid">
-            {cases.map((item) => (
-              <button
-                className={`case-card ${item.id === activeCaseId ? "active" : ""}`}
-                key={item.id}
-                onClick={() => applyCase(item)}
-              >
-                <span>{item.title}</span>
-                <strong>{item.subtitle}</strong>
-              </button>
-            ))}
-          </div>
-
-          {activeCase && (
-            <article className="case-detail-card">
-              <div>
-                <div className="eyebrow">Active Case</div>
-                <h3>{activeCase.title}</h3>
-                <p>{activeCase.story}</p>
               </div>
-              <div className="case-detail-grid">
-                <InfoBlock title="讲解重点">{activeCase.teaching_focus}</InfoBlock>
-                <InfoBlock title="推荐操作">{activeCase.action_hint}</InfoBlock>
-                <InfoBlock title="推荐模式">
-                  {OPERATIONS.find((item) => item.value === activeCase.operation)
-                    ?.label || activeCase.operation}
-                </InfoBlock>
+            )}
+
+            {inspectorTab === "share" && (
+              <div className="inspector-stack">
+                <ShareCard
+                  title="公开链接"
+                  description="适合发给老师或评委自由浏览，保持当前矩阵和运算状态。"
+                  onCopy={() =>
+                    copyPresetLink({
+                      label: "公开链接",
+                      nextDefenseMode: false,
+                      nextCaseId: activeCaseId,
+                    })
+                  }
+                />
+                <ShareCard
+                  title="答辩链接"
+                  description="直接进入更聚焦的展示视图，更适合现场投屏和讲解。"
+                  onCopy={() =>
+                    copyPresetLink({
+                      label: "答辩链接",
+                      nextDefenseMode: true,
+                      nextCaseId: activeCaseId,
+                    })
+                  }
+                />
+                <ShareCard
+                  title="案例直达链接"
+                  description={
+                    activeCase
+                      ? `直接进入 ${activeCase.title} 的讲解场景。`
+                      : "当前没有选中案例，会复制当前自定义矩阵状态。"
+                  }
+                  onCopy={() =>
+                    copyPresetLink({
+                      label: activeCase ? `${activeCase.title} 案例链接` : "当前案例链接",
+                      nextDefenseMode: defenseMode,
+                      nextCaseId: activeCaseId,
+                    })
+                  }
+                />
               </div>
-            </article>
-          )}
+            )}
+          </aside>
         </section>
 
         {!defenseMode && (
-          <>
-            <section className="sections-strip">
-              {sections.map((section) => (
-                <article className="section-card" key={section.id}>
-                  <span>{section.label}</span>
-                  <strong>{section.description}</strong>
-                </article>
-              ))}
-            </section>
-
-            <section className="faq-section">
-              <div className="section-head">
-                <div>
-                  <div className="eyebrow">FAQ</div>
-                  <h2>公开网站视角下的常见问题</h2>
-                </div>
-                <p>
-                  这些问题决定了它是一个真正可公开访问的产品，还是一个只能本地演示的页面。
-                </p>
-              </div>
-
-              <div className="faq-grid">
-                {faq.map((item) => (
-                  <article className="faq-card" key={item.question}>
-                    <strong>{item.question}</strong>
-                    <p>{item.answer}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="roadmap-section" id="roadmap">
-              <div className="section-head">
-                <div>
-                  <div className="eyebrow">4-Day Sprint</div>
-                  <h2>四天内把它推向公网版</h2>
-                </div>
-                <p>
-                  现在已经从本地演示思路切换到产品站思路。后续冲刺重点会放在部署、发布入口、移动端和更完整的教学叙事。
-                </p>
-              </div>
-
-              <div className="roadmap-grid">
-                {ROADMAP.map((item) => (
-                  <article className="roadmap-card" key={item}>
-                    <strong>{item}</strong>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="deployment-section">
-              <div className="section-head">
-                <div>
-                  <div className="eyebrow">Deployment Ready</div>
-                  <h2>已经开始按公网部署形态组织</h2>
-                </div>
-                <p>
-                  现在的前后端已经是同源单站点结构，后续可以直接打包成容器部署到云端，而不是依赖本地脚本演示。
-                </p>
-              </div>
-
-              <div className="deployment-grid">
-                {deployment.map((item) => (
-                  <article className="section-card" key={item.title}>
-                    <span>{item.title}</span>
-                    <strong>{item.body}</strong>
-                  </article>
-                ))}
-              </div>
-            </section>
-          </>
+          <section className="support-strip">
+            {quickFacts.map((item) => (
+              <article className="support-card" key={item.title}>
+                <span className="section-label">Guide</span>
+                <strong>{item.title}</strong>
+                <p>{item.body}</p>
+              </article>
+            ))}
+          </section>
         )}
       </main>
     </div>
   );
 }
 
-function MetricCard({ label, value }) {
+function MetricChip({ label, children }) {
   return (
-    <article className="metric-card">
+    <article className="metric-chip">
       <span>{label}</span>
-      <strong>{value}</strong>
+      <strong>{children}</strong>
     </article>
   );
 }
 
 function InfoBlock({ title, children }) {
   return (
-    <div className="info-block">
+    <article className="info-block">
       <span>{title}</span>
       <strong>{children}</strong>
-    </div>
+    </article>
+  );
+}
+
+function ShareCard({ title, description, onCopy }) {
+  return (
+    <article className="share-card">
+      <span className="section-label">Share</span>
+      <strong>{title}</strong>
+      <p>{description}</p>
+      <button className="ghost-button compact" onClick={onCopy}>
+        复制
+      </button>
+    </article>
   );
 }
 
@@ -965,20 +779,21 @@ function TransformWorkspace({ matrix, probePoint, onProbeChange }) {
         matrix={matrix}
         probePoint={probePoint}
         onProbeChange={onProbeChange}
+        size={360}
       />
       <GraphPanel
         title="变换后平面"
         mode="target"
         matrix={matrix}
         probePoint={probePoint}
+        size={360}
       />
     </div>
   );
 }
 
-function GraphPanel({ title, mode, matrix, probePoint, onProbeChange }) {
+function GraphPanel({ title, mode, matrix, probePoint, onProbeChange, size = 360 }) {
   const svgRef = useRef(null);
-  const size = 340;
   const extent = 4;
   const center = size / 2;
   const unit = size / (extent * 2);
@@ -1057,8 +872,15 @@ function GraphPanel({ title, mode, matrix, probePoint, onProbeChange }) {
 
   return (
     <article className="graph-card">
-      <div className="graph-title">{title}</div>
-      <svg ref={svgRef} viewBox={`0 0 ${size} ${size}`} onPointerDown={startDrag}>
+      <div className="graph-card-header">
+        <span className="section-label">{mode === "source" ? "Source" : "Target"}</span>
+        <strong>{title}</strong>
+      </div>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${size} ${size}`}
+        onPointerDown={startDrag}
+      >
         <rect x="0" y="0" width={size} height={size} rx="26" className="graph-bg" />
         {gridLines.map((line, index) => {
           const [x1, y1] = toSvg(line[0]);
