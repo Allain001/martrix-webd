@@ -9,15 +9,15 @@ import streamlit as st
 BASE_DIR = Path(__file__).resolve().parent
 
 PAGES = [
-    ("Home", "home", BASE_DIR / "Home.py"),
-    ("2D Transform", "2d-transform", BASE_DIR / "pages" / "1_2D_Transform.py"),
-    ("3D Transform", "3d-transform", BASE_DIR / "pages" / "2_3D_Transform.py"),
-    ("2x3 Projection", "2x3-projection", BASE_DIR / "pages" / "3_2x3_Projection.py"),
-    ("3x2 Lifting", "3x2-lifting", BASE_DIR / "pages" / "4_3x2_Lifting.py"),
-    ("PCA Demo", "pca-demo", BASE_DIR / "pages" / "5_PCA_Demo.py"),
-    ("SVDImgCompression", "svd-img-compression", BASE_DIR / "pages" / "6_SVDImgCompression.py"),
-    ("PCAImgCompression", "pca-img-compression", BASE_DIR / "pages" / "7_PCAImgCompression.py"),
-    ("LSE", "lse", BASE_DIR / "pages" / "8_LSE.py"),
+    ("主页", "home", BASE_DIR / "Home.py"),
+    ("二维变换", "2d-transform", BASE_DIR / "pages" / "1_2D_Transform.py"),
+    ("三维变换", "3d-transform", BASE_DIR / "pages" / "2_3D_Transform.py"),
+    ("三维到二维投影", "2x3-projection", BASE_DIR / "pages" / "3_2x3_Projection.py"),
+    ("二维到三维提升", "3x2-lifting", BASE_DIR / "pages" / "4_3x2_Lifting.py"),
+    ("PCA 演示", "pca-demo", BASE_DIR / "pages" / "5_PCA_Demo.py"),
+    ("SVD 图像压缩", "svd-img-compression", BASE_DIR / "pages" / "6_SVDImgCompression.py"),
+    ("PCA 图像压缩", "pca-img-compression", BASE_DIR / "pages" / "7_PCAImgCompression.py"),
+    ("最小二乘", "lse", BASE_DIR / "pages" / "8_LSE.py"),
 ]
 
 PATH_TO_SLUG = {
@@ -71,7 +71,7 @@ labels = [label for label, _, _ in PAGES]
 current_index = [slug for _, slug, _ in PAGES].index(current_slug)
 
 with st.sidebar:
-    selected_label = st.radio("Navigation", labels, index=current_index)
+    selected_label = st.radio("导航", labels, index=current_index)
 
 selected_slug = next(slug for label, slug, _ in PAGES if label == selected_label)
 st.session_state["active_page_slug"] = selected_slug

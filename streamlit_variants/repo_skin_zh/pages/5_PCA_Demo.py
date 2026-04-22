@@ -353,12 +353,12 @@ def fig_sigma_and_evr(p: PCAResult) -> Tuple[go.Figure, go.Figure]:
 # -----------------------------
 # Streamlit UI
 # -----------------------------
-st.set_page_config(page_title="PCA Demo (2D/3D + SVD Bridge)", layout="wide")
+st.set_page_config(page_title="PCA 演示（二维 / 三维 / SVD 桥接）", layout="wide")
 
-st.title("PCA Demo")
-st.caption("PCA as rotation → projection → reconstruction. Implemented via SVD on centered data.")
+st.title("PCA 演示")
+st.caption("把 PCA 看成“旋转 → 投影 → 重建”的过程，并用中心化数据上的 SVD 来实现。")
 
-tabs = st.tabs(["2D: Rotation + Projection", "3D: Plane/Line Projection", "Bridge: PCA = SVD on centered X"])
+tabs = st.tabs(["二维：旋转与投影", "三维：平面 / 直线投影", "桥接：PCA = 中心化数据的 SVD"])
 
 # -----------------------------
 # Tab 1: 2D
@@ -367,22 +367,22 @@ with tabs[0]:
     left, right = st.columns([1, 2], gap="large")
 
     with left:
-        st.subheader("2D data")
-        n = st.slider("Number of points", 50, 800, 250, 10)
-        angle = st.slider("Tilt angle (degrees)", 0, 89, 45, 1)
-        scale_major = st.slider("Major axis scale", 0.5, 6.0, 3.0, 0.1)
-        scale_minor = st.slider("Minor axis scale", 0.1, 3.0, 0.8, 0.1)
-        noise = st.slider("Noise", 0.0, 1.5, 0.50, 0.1)
-        seed = st.number_input("Seed", value=7, step=1)
+        st.subheader("二维数据")
+        n = st.slider("点的数量", 50, 800, 250, 10)
+        angle = st.slider("主轴倾斜角（度）", 0, 89, 45, 1)
+        scale_major = st.slider("主方向尺度", 0.5, 6.0, 3.0, 0.1)
+        scale_minor = st.slider("次方向尺度", 0.1, 3.0, 0.8, 0.1)
+        noise = st.slider("噪声强度", 0.0, 1.5, 0.50, 0.1)
+        seed = st.number_input("随机种子", value=7, step=1)
 
         st.divider()
-        add_out = st.checkbox("Add outliers", value=False)
-        out_n = st.slider("Outliers count", 0, 80, 12, 1, disabled=not add_out)
-        out_spread = st.slider("Outlier spread", 1.0, 20.0, 10.0, 0.5, disabled=not add_out)
+        add_out = st.checkbox("加入离群点", value=False)
+        out_n = st.slider("离群点数量", 0, 80, 12, 1, disabled=not add_out)
+        out_spread = st.slider("离群点分布范围", 1.0, 20.0, 10.0, 0.5, disabled=not add_out)
 
         st.divider()
-        k = st.slider("Keep k components", 0, 2, 1, 1)
-        show_shadows = st.checkbox("Show projection shadows (k=1)", value=True)
+        k = st.slider("保留 k 个主成分", 0, 2, 1, 1)
+        show_shadows = st.checkbox("显示投影阴影（k=1）", value=True)
 
     X = gen_2d_ellipse(
         n=n,
@@ -400,19 +400,19 @@ with tabs[0]:
     err = mse(X, Xhat)
 
     with right:
-        st.subheader("Visualization")
+        st.subheader("可视化结果")
         st.plotly_chart(fig_2d_pca_scene(X=X, Xhat=Xhat, p=p, k=k, show_shadows=show_shadows), use_container_width=True)
         evr = explained_variance_ratio(p)
-        st.write(f"**Reconstruction MSE:** {err:.6f}")
-        st.write(f"**Explained variance ratio:** PC1 {evr[0]:.3f}, PC2 {evr[1]:.3f}")
+        st.write(f"**重建均方误差：** {err:.6f}")
+        st.write(f"**解释方差比：** 主成分 1 为 {evr[0]:.3f}，主成分 2 为 {evr[1]:.3f}")
 
-        with st.expander("What to say (tight narration)"):
+        with st.expander("讲解提示"):
             st.markdown(
                 """
-- The cloud is stretched, so the two features are correlated.
-- PCA finds a new orthonormal coordinate system: PC1 and PC2.
-- Keeping only PC1 means projecting every point onto the best-fit line (perpendicular error).
-- Reconstruction error increases when you drop PC2, but noise often drops too.
+- 点云被拉伸成斜椭圆，说明两个维度存在相关性。
+- PCA 会找到一组新的正交坐标轴，也就是主成分方向。
+- 只保留 PC1，就等于把所有点投影到最佳拟合直线上。
+- 丢掉 PC2 会增大重建误差，但往往也能滤掉部分噪声。
                 """.strip()
             )
 
@@ -423,20 +423,20 @@ with tabs[1]:
     left, right = st.columns([1, 2], gap="large")
 
     with left:
-        st.subheader("3D data")
-        n3 = st.slider("Number of points", 80, 2000, 200, 20)
-        tilt_x = st.slider("Tilt about x-axis (deg)", 0, 89, 25, 1)
-        tilt_y = st.slider("Tilt about y-axis (deg)", 0, 89, 35, 1)
-        scale1 = st.slider("Spread along direction 1", 0.5, 8.0, 4.0, 0.1)
-        scale2 = st.slider("Spread along direction 2", 0.5, 8.0, 2.5, 0.1)
-        thickness = st.slider("Thickness (small variance axis)", 0.01, 2.0, 1.5, 0.01)
-        noise3 = st.slider("Noise", 0.0, 1.5, 0.85, 0.05)
-        seed3 = st.number_input("Seed", value=11, step=1, key="seed3")
+        st.subheader("三维数据")
+        n3 = st.slider("点的数量", 80, 2000, 200, 20)
+        tilt_x = st.slider("绕 x 轴倾斜（度）", 0, 89, 25, 1)
+        tilt_y = st.slider("绕 y 轴倾斜（度）", 0, 89, 35, 1)
+        scale1 = st.slider("方向 1 的扩展尺度", 0.5, 8.0, 4.0, 0.1)
+        scale2 = st.slider("方向 2 的扩展尺度", 0.5, 8.0, 2.5, 0.1)
+        thickness = st.slider("薄厚方向尺度", 0.01, 2.0, 1.5, 0.01)
+        noise3 = st.slider("噪声强度", 0.0, 1.5, 0.85, 0.05)
+        seed3 = st.number_input("随机种子", value=11, step=1, key="seed3")
 
         st.divider()
-        k3 = st.slider("Keep k components", 0, 3, 2, 1)
-        show_plane = st.checkbox("Show PC1-PC2 plane", value=True)
-        show_vectors = st.checkbox("Show PC vectors", value=True)
+        k3 = st.slider("保留 k 个主成分", 0, 3, 2, 1)
+        show_plane = st.checkbox("显示 PC1-PC2 平面", value=True)
+        show_vectors = st.checkbox("显示主成分方向", value=True)
 
     X3 = gen_3d_pancake(
         n=int(n3),
@@ -454,22 +454,22 @@ with tabs[1]:
     evr3 = explained_variance_ratio(p3)
 
     with right:
-        st.subheader("Visualization")
+        st.subheader("可视化结果")
         st.plotly_chart(
             fig_3d_pca_scene(X=X3, Xhat=X3hat, p=p3, k=k3, show_plane=show_plane, show_vectors=show_vectors),
             use_container_width=True,
         )
-        st.write(f"**Reconstruction MSE:** {err3:.6f}")
+        st.write(f"**重建均方误差：** {err3:.6f}")
         st.write(
-            f"**Explained variance ratio:** PC1 {evr3[0]:.3f}, PC2 {evr3[1]:.3f}, PC3 {evr3[2]:.3f}"
+            f"**解释方差比：** 主成分 1 为 {evr3[0]:.3f}，主成分 2 为 {evr3[1]:.3f}，主成分 3 为 {evr3[2]:.3f}"
         )
 
-        with st.expander("Punchline"):
+        with st.expander("讲解提示"):
             st.markdown(
                 """
-- If k=2, you project onto a best-fit plane (denoising the thin direction).
-- If k=1, everything collapses to a best-fit line.
-- If k=3, you keep everything.
+- 当 k=2 时，相当于把点云投影到最佳拟合平面，同时削弱最薄的噪声方向。
+- 当 k=1 时，所有点会进一步压缩到一条最佳拟合直线。
+- 当 k=3 时，表示保留全部信息。
                 """.strip()
             )
 
@@ -477,38 +477,38 @@ with tabs[1]:
 # Tab 3: Bridge (PCA = SVD)
 # -----------------------------
 with tabs[2]:
-    st.subheader("PCA is SVD on centered data")
+    st.subheader("PCA 本质上是中心化数据的 SVD")
 
     top = st.columns([1, 1, 1], gap="large")
 
     with top[0]:
-        st.markdown("**Choose a dataset for the bridge view**")
+        st.markdown("**选择桥接视图使用的数据集**")
         bridge_choice = st.radio(
-            "Dataset",
-            ["Use current 2D dataset", "Use current 3D dataset"],
+            "数据集",
+            ["使用当前二维数据", "使用当前三维数据"],
             label_visibility="collapsed",
         )
-        if bridge_choice == "Use current 2D dataset":
+        if bridge_choice == "使用当前二维数据":
             pb = p
             Xb = X
         else:
             pb = p3
             Xb = X3
 
-        st.markdown("**Turn singular components on/off**")
+        st.markdown("**选择保留哪些奇异分量**")
         r = pb.s.shape[0]
         default_sel = list(range(min(r, 2)))  # default keep first 2
         selected = st.multiselect(
-            "Keep components",
+            "保留分量",
             options=list(range(r)),
             default=default_sel,
-            format_func=lambda i: f"component {i+1}",
+            format_func=lambda i: f"分量 {i+1}",
         )
         Xbhat = reconstruct_from_selected_singulars(pb, selected)
         errb = mse(Xb, Xbhat)
 
-        st.write(f"**Reconstruction MSE:** {errb:.6f}")
-        st.caption("This is literally low-rank reconstruction of centered X using chosen singular components.")
+        st.write(f"**重建均方误差：** {errb:.6f}")
+        st.caption("这里展示的就是对中心化矩阵 X 进行低秩重建，只保留你选中的奇异分量。")
 
     with top[1]:
         f_sigma, f_evr = fig_sigma_and_evr(pb)
@@ -520,15 +520,15 @@ with tabs[2]:
 
     st.divider()
 
-    st.markdown("SVD of centered data $X_c$ is:")
+    st.markdown("中心化数据 $X_c$ 的 SVD 为：")
     st.latex(r"X_c = U \Sigma V^\top")
     
     st.markdown(
-        r"The **principal directions** are the columns of $V$, and the variance captured by each component is proportional to "
-        r"$\sigma_i^2$ (scaled by $n-1$)."
+        r"**主成分方向** 就是矩阵 $V$ 的列向量，而每个主成分捕获的方差与 "
+        r"$\sigma_i^2$ 成正比（严格来说还会除以 $n-1$）。"
     )
     
     st.markdown(
-        r'If you "turn off" a singular value $\sigma_i$, you remove that component and the reconstruction degrades.'
+        r"如果把某个奇异值 $\sigma_i$ 对应的分量关掉，就相当于删除了这部分结构信息，重建质量也会下降。"
 )
 

@@ -195,38 +195,38 @@ with st.sidebar:
 
     if mode == "内置样例（人脸）":
         st.divider()
-        st.subheader("Built-in sample path")
-        st.text_input("Built-in path", value=BUILTIN_FACES_DISPLAY, disabled=True)
+        st.subheader("内置样例路径")
+        st.text_input("内置路径", value=BUILTIN_FACES_DISPLAY, disabled=True)
 
         st.divider()
-        st.subheader("Loading")
-        max_imgs = st.slider("Max images to load", 20, 200, 100, 10)
-        seed = st.number_input("Shuffle seed", value=7, step=1)
-        shuffle = st.checkbox("Shuffle images", value=True)
+        st.subheader("加载设置")
+        max_imgs = st.slider("最多加载图像数", 20, 200, 100, 10)
+        seed = st.number_input("打乱随机种子", value=7, step=1)
+        shuffle = st.checkbox("打乱图像顺序", value=True)
 
         st.divider()
-        st.subheader("Eigenfaces view")
-        eig_cols = st.slider("Eigenfaces columns", 2, 8, 4, 1)
-        show_eigs = st.slider("How many eigenfaces to show", 4, 64, 16, 4)
+        st.subheader("特征脸视图")
+        eig_cols = st.slider("特征脸每行列数", 2, 8, 4, 1)
+        show_eigs = st.slider("展示多少张特征脸", 4, 64, 16, 4)
 
         st.divider()
-        st.subheader("Reconstruction")
-        k = st.slider("Keep k components", 0, 200, 25, 1)
+        st.subheader("重建设置")
+        k = st.slider("保留 k 个主成分", 0, 200, 25, 1)
 
     else:
         st.divider()
-        st.subheader("User image input")
-        uploaded = st.file_uploader("Upload a color image (png/jpg/webp)", type=["png", "jpg", "jpeg", "webp"])
+        st.subheader("用户图像输入")
+        uploaded = st.file_uploader("上传彩色图像（png/jpg/webp）", type=["png", "jpg", "jpeg", "webp"])
 
         st.divider()
-        st.subheader("RGB PCA reconstruction")
-        k_rgb = st.slider("Keep k components (RGB)", 1, 3, 2, 1)
-        show_evr_rgb = st.checkbox("Show explained variance", value=True)
+        st.subheader("RGB PCA 重建")
+        k_rgb = st.slider("保留 k 个主成分（RGB）", 1, 3, 2, 1)
+        show_evr_rgb = st.checkbox("显示解释方差", value=True)
 
         st.divider()
-        st.subheader("Auto-fit panels")
-        PANEL_MAX_W = st.slider("Max panel width (px)", 220, 520, 360, 10)
-        st.caption("No cropping: image render width is capped by this value in 2×2 grids.")
+        st.subheader("自动适配面板")
+        PANEL_MAX_W = st.slider("面板最大宽度（像素）", 220, 520, 360, 10)
+        st.caption("不会裁切图像：在 2x2 网格中，图像宽度会被限制在这个上限内。")
 
 
 # -----------------------------
@@ -235,12 +235,12 @@ with st.sidebar:
 if mode == "内置样例（人脸）":
     root = DEFAULT_FACES_DIR
     if not root or not os.path.isdir(root):
-        st.warning(f"Built-in dataset folder not found: {root}")
+        st.warning(f"未找到内置数据集目录：{root}")
         st.stop()
 
     paths_all = list_images_recursive(root)
     if len(paths_all) == 0:
-        st.warning(f"No images found under: {root}")
+        st.warning(f"在该目录下未找到图像：{root}")
         st.stop()
 
     rng = np.random.default_rng(int(seed))
@@ -291,13 +291,13 @@ if mode == "内置样例（人脸）":
     left, right = st.columns([1.0, 1.8], gap="large")
 
     with left:
-        st.subheader("Mean face")
-        st.image(vec_to_gray_img(pca.mean, size_wh), caption=f"Mean face (n={n})", width=display_w)
-        st.subheader("Explained variance (first 50)")
+        st.subheader("均值人脸")
+        st.image(vec_to_gray_img(pca.mean, size_wh), caption=f"均值人脸（n={n}）", width=display_w)
+        st.subheader("解释方差（前 50 项）")
         st.plotly_chart(fig_evr(evr[: min(len(evr), 50)]), use_container_width=True)
 
     with right:
-        st.subheader("Eigenfaces")
+        st.subheader("特征脸")
         num_show = int(min(show_eigs, pca.Vt.shape[0]))
         rows = int(math.ceil(num_show / int(eig_cols)))
 
@@ -311,15 +311,15 @@ if mode == "内置样例（人脸）":
                 v_disp = normalize_for_display(v)
                 c.image(
                     vec_to_gray_img(v_disp, size_wh),
-                    caption=f"PC{k0+1}  EVR {evr[k0]:.3f}",
+                    caption=f"主成分 {k0+1}  解释方差比 {evr[k0]:.3f}",
                     width=display_w
                 )
                 k0 += 1
 
     st.divider()
-    st.subheader("Face reconstruction from k eigenfaces")
+    st.subheader("使用 k 个特征脸进行重建")
 
-    sel = st.slider("Select dataset face index", 0, n - 1, 0, 1)
+    sel = st.slider("选择数据集中的人脸编号", 0, n - 1, 0, 1)
     x = X[sel, :]
     xhat = reconstruct_one_vector(pca, x, k=int(k))
 
@@ -327,12 +327,12 @@ if mode == "内置样例（人脸）":
     diff_disp = normalize_for_display(diff)
 
     c1, c2, c3 = st.columns([1, 1, 1], gap="large")
-    c1.image(vec_to_gray_img(x, size_wh), caption=f"Original face (index {sel})", use_container_width=True)
-    c2.image(vec_to_gray_img(xhat, size_wh), caption=f"Reconstructed face (k={int(k)})", use_container_width=True)
-    c3.image(vec_to_gray_img(diff_disp, size_wh), caption="Difference (absolute error, rescaled)", use_container_width=True)
+    c1.image(vec_to_gray_img(x, size_wh), caption=f"原始人脸（编号 {sel}）", use_container_width=True)
+    c2.image(vec_to_gray_img(xhat, size_wh), caption=f"重建人脸（k={int(k)}）", use_container_width=True)
+    c3.image(vec_to_gray_img(diff_disp, size_wh), caption="差异图（绝对误差，已重缩放）", use_container_width=True)
 
     mse_val = float(np.mean((x - xhat) ** 2))
-    st.write(f"**Reconstruction MSE:** {mse_val:.6f}")
+    st.write(f"**重建均方误差：** {mse_val:.6f}")
     st.stop()
 
 
@@ -340,13 +340,13 @@ if mode == "内置样例（人脸）":
 # Mode B: User image (RGB) PCA on pixels
 # -----------------------------
 if uploaded is None:
-    st.info("Upload a color image in the sidebar to run RGB PCA on pixels.")
+    st.info("请先在侧边栏上传彩色图像，再进行 RGB 像素级 PCA。")
     st.stop()
 else:
     try:
         img_rgb = Image.open(uploaded).convert("RGB")
     except Exception as e:
-        st.error(f"Failed to open image: {e}")
+        st.error(f"图像打开失败：{e}")
         st.stop()
     else:
         arr = np.asarray(img_rgb, dtype=np.uint8)  # H x W x 3
@@ -370,13 +370,13 @@ else:
         st.sidebar.caption(f"Desired scale: {float(display_scale):.2f}  Effective scale: {effective_scale:.3f}")
         st.sidebar.caption(f"Panel display width: {display_w_user}px")
 
-        st.subheader("User image and RGB channels")
+        st.subheader("用户图像与 RGB 通道")
         row1 = st.columns(2, gap="large")
         row2 = st.columns(2, gap="large")
-        row1[0].image(img_rgb, caption="Original color image", width=display_w_user)
-        row1[1].image(Image.fromarray(r_ch, mode="L"), caption="R channel (grayscale)", width=display_w_user)
-        row2[0].image(Image.fromarray(g_ch, mode="L"), caption="G channel (grayscale)", width=display_w_user)
-        row2[1].image(Image.fromarray(b_ch, mode="L"), caption="B channel (grayscale)", width=display_w_user)
+        row1[0].image(img_rgb, caption="原始彩色图像", width=display_w_user)
+        row1[1].image(Image.fromarray(r_ch, mode="L"), caption="R 通道（灰度）", width=display_w_user)
+        row2[0].image(Image.fromarray(g_ch, mode="L"), caption="G 通道（灰度）", width=display_w_user)
+        row2[1].image(Image.fromarray(b_ch, mode="L"), caption="B 通道（灰度）", width=display_w_user)
 
         # PCA on pixels: X shape (N,3), N = H*W
         Xpix = (arr.reshape(-1, 3).astype(np.float32)) / 255.0
@@ -389,23 +389,23 @@ else:
         pc3 = normalize_for_display(scores[:, 2]).reshape(H, W)
 
         st.divider()
-        st.subheader("Eigen images (PC score maps)")
+        st.subheader("特征图像（主成分得分图）")
         erow1 = st.columns(2, gap="large")
         erow2 = st.columns(2, gap="large")
 
         erow1[0].image(
             Image.fromarray((pc1 * 255).astype(np.uint8), mode="L"),
-            caption=f"PC1 score map (EVR {evr_rgb[0]:.3f})",
+            caption=f"主成分 1 得分图（解释方差比 {evr_rgb[0]:.3f}）",
             width=display_w_user
         )
         erow1[1].image(
             Image.fromarray((pc2 * 255).astype(np.uint8), mode="L"),
-            caption=f"PC2 score map (EVR {evr_rgb[1]:.3f})",
+            caption=f"主成分 2 得分图（解释方差比 {evr_rgb[1]:.3f}）",
             width=display_w_user
         )
         erow2[0].image(
             Image.fromarray((pc3 * 255).astype(np.uint8), mode="L"),
-            caption=f"PC3 score map (EVR {evr_rgb[2]:.3f})",
+            caption=f"主成分 3 得分图（解释方差比 {evr_rgb[2]:.3f}）",
             width=display_w_user
         )
 
@@ -426,24 +426,24 @@ else:
         diff_u8 = (diff_disp * 255).astype(np.uint8)
 
         st.divider()
-        st.subheader(f"Reconstructed color image using first {int(k_rgb)} PCA component(s)")
+        st.subheader(f"使用前 {int(k_rgb)} 个主成分重建的彩色图像")
         rrow1 = st.columns(2, gap="large")
         rrow2 = st.columns(2, gap="large")
 
-        rrow1[0].image(img_rgb, caption="Original color image", width=display_w_user)
-        rrow1[1].image(Image.fromarray(arr_hat, mode="RGB"), caption=f"Reconstructed (k={int(k_rgb)})", width=display_w_user)
-        rrow2[0].image(Image.fromarray(diff_u8, mode="L"), caption="Difference (RGB error magnitude, rescaled)", width=display_w_user)
+        rrow1[0].image(img_rgb, caption="原始彩色图像", width=display_w_user)
+        rrow1[1].image(Image.fromarray(arr_hat, mode="RGB"), caption=f"重建结果（k={int(k_rgb)}）", width=display_w_user)
+        rrow2[0].image(Image.fromarray(diff_u8, mode="L"), caption="差异图（RGB 误差幅值，已重缩放）", width=display_w_user)
         rrow2[1].empty()
 
         mse_rgb = float(np.mean((Xpix - Xhat) ** 2))
-        st.write(f"**Pixel-space reconstruction MSE (RGB):** {mse_rgb:.6f}")
+        st.write(f"**RGB 像素空间重建均方误差：** {mse_rgb:.6f}")
 
-        with st.expander("What’s happening here?"):
+        with st.expander("这里发生了什么？"):
             st.markdown(
                 """
-- PCA is applied to **pixel RGB vectors**.
-- Each pixel is a sample with 3 features (R,G,B): **X is (H·W)×3**.
-- The eigen images shown are **PC score maps** (projection values per pixel), reshaped back to H×W.
-- Reconstruction with k=1..3 gives a low-dimensional color approximation plus a difference map.
+- 这里的 PCA 作用在 **像素 RGB 向量** 上。
+- 每个像素都是一个样本，特征维度是 3（R、G、B），所以矩阵 **X 的尺寸是 (H·W)×3**。
+- 页面展示的“特征图像”其实是 **主成分得分图**，也就是每个像素投影到主成分后的取值，再重新排回 H×W。
+- 当 k=1..3 时，系统会用低维颜色表示去逼近原图，同时给出误差图辅助观察。
                 """.strip()
             )

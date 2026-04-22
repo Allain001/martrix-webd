@@ -18,8 +18,8 @@ st.title("martrixvis")
 
 st.markdown(
     """
-    <div style="font-size:32px; font-weight:650; margin-top:-10px; margin-left: 200px">
-              -- 线性代数交互可视化
+    <div style="font-size:30px; font-weight:650; margin-top:-10px; margin-left: 180px;">
+        看见线性代数
     </div>
     """,
     unsafe_allow_html=True,
@@ -30,27 +30,28 @@ col_text, col_logo = st.columns([6, 1])
 with col_text:
     st.markdown(
         """
-        <div style="margin-top:20px; margin-left:250px; font-size:22px; line-height:1.6;">
-            <div style="font-weight:600;">线性代数工作空间</div>
-            <div style="margin-left:40px;">  矩阵变换、几何解释、SVD、PCA 与最小二乘</div>
+        <div style="margin-top:22px; margin-left:230px; font-size:21px; line-height:1.7;">
+            <div style="font-weight:600;">交互式线性代数实验站</div>
+            <div style="margin-left:24px;">
+                从二维变换、三维变换到 SVD、PCA 与最小二乘，
+                把抽象公式还原成可观察、可讲解、可复盘的几何过程。
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 with col_logo:
-    st.markdown("<div style='padding-left:200px;'></div>", unsafe_allow_html=True)
-
+    st.markdown("<div style='padding-left:160px;'></div>", unsafe_allow_html=True)
 
 st.markdown(
     """
 ### 关于本站
 
-- 二维与三维矩阵变换
-- SVD 与 PCA 的几何直觉
-- 维度之间的投影与提升
-- 图像压缩
-- 最小二乘与 Ax = b
+- 用动态图形解释二维与三维矩阵变换
+- 用 SVD 和 PCA 说明旋转、伸缩、投影与压缩
+- 用几何视角理解最小二乘与过定方程组
+- 支持课堂演示、答辩展示与课后自学
 """
 )
 
@@ -81,7 +82,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("二维变换")
-    st.write("用 2x2 矩阵、特征向量和 SVD 观察平面中的线性动作。")
+    st.write("用 2x2 矩阵、特征向量和 SVD 观察平面中的旋转、拉伸、剪切与面积变化。")
     if st.button("进入二维变换", key="h2_2d"):
         st.switch_page("pages/1_2D_Transform.py")
     autoplay_gif_panel(
@@ -92,7 +93,7 @@ with col1:
 
 with col2:
     st.subheader("三维变换")
-    st.write("观察 3x3 矩阵、特征向量与三维 SVD 路径。")
+    st.write("观察 3x3 矩阵在空间中的作用方式，以及三维特征向量与 SVD 路径。")
     if st.button("进入三维变换", key="h2_3d"):
         st.switch_page("pages/2_3D_Transform.py")
     autoplay_gif_panel(
@@ -107,23 +108,23 @@ col3, col4 = st.columns(2)
 
 with col3:
     st.subheader("三维到二维投影 (R3 -> R2)")
-    st.write("借助 SVD，把三维点云投影到二维平面。")
+    st.write("借助 SVD，把三维点云投影到二维平面，并解释图像平面的生成过程。")
     if st.button("进入三维到二维投影", key="h2_2x3"):
         st.switch_page("pages/3_2x3_Projection.py")
     autoplay_gif_panel(
         VIDEOS_DIR / "SVD2x3ProjectionDemo.gif",
-        "##### 2x3 SVD 演示",
+        "##### 三维到二维投影演示",
         height=400,
     )
 
 with col4:
     st.subheader("二维到三维提升 (R2 -> R3)")
-    st.write("借助 SVD，把二维点云提升到三维空间。")
+    st.write("借助 SVD，把平面点云提升到三维空间，观察升维后的结构与方向。")
     if st.button("进入二维到三维提升", key="h2_3x2"):
         st.switch_page("pages/4_3x2_Lifting.py")
     autoplay_gif_panel(
         VIDEOS_DIR / "SVD3x2LiftingDemo.gif",
-        "##### 3x2 SVD 演示",
+        "##### 二维到三维提升演示",
         height=400,
     )
 
@@ -133,7 +134,7 @@ col5, col6 = st.columns(2)
 
 with col5:
     st.subheader("PCA 演示")
-    st.write("把 PCA 看成旋转与投影的组合。")
+    st.write("把 PCA 看成旋转、投影与重建的组合，理解主成分为什么能够提炼结构。")
     if st.button("进入 PCA 演示", key="h2_pca"):
         st.switch_page("pages/5_PCA_Demo.py")
     autoplay_gif_panel(
@@ -144,7 +145,7 @@ with col5:
 
 with col6:
     st.subheader("SVD 图像压缩")
-    st.write("保留前 k 个奇异值，观察图像重建效果。")
+    st.write("保留前 k 个奇异值，观察图像重建质量、能量占比和参数压缩率。")
     if st.button("进入 SVD 图像压缩", key="h2_svd_img"):
         st.switch_page("pages/6_SVDImgCompression.py")
     autoplay_gif_panel(
@@ -159,7 +160,7 @@ col7, col8 = st.columns(2)
 
 with col7:
     st.subheader("PCA 图像压缩")
-    st.write("观察均值图像、主成分与重建误差。")
+    st.write("观察均值图像、主成分、特征脸与重建误差，理解 PCA 的压缩逻辑。")
     if st.button("进入 PCA 图像压缩", key="h2_pca_img"):
         st.switch_page("pages/7_PCAImgCompression.py")
     autoplay_gif_panel(
@@ -170,7 +171,7 @@ with col7:
 
 with col8:
     st.subheader("最小二乘")
-    st.write("用平面、交线、残差和最优点理解过定方程组。")
+    st.write("用平面、交线、残差和最优点理解过定方程组与最小二乘近似。")
     if st.button("进入最小二乘", key="h2_lse"):
         st.switch_page("pages/8_LSE.py")
     autoplay_gif_panel(
@@ -194,7 +195,7 @@ visitor_map_html = """
     </iframe>
 </div>
 <p style="text-align:center; color:gray; font-size:13px;">
-    访客数量与位置为近似统计结果。
+    访问人数与位置为近似统计结果。
 </p>
 """
 components.html(visitor_map_html, height=400)

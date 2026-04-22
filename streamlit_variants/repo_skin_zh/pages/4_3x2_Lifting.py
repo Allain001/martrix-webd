@@ -677,8 +677,8 @@ def create_animation_gif_3x2(filename,
 # ---------- Streamlit app ----------
 
 def main():
-    st.set_page_config(page_title="3×2 Matrix: R² → R³ via SVD (cartoon + GIF)", layout="wide")
-    st.title("3×2 Linear Transformation: Lifting R² into R³ via SVD (Cartoon + GIF)")
+    st.set_page_config(page_title="二维到三维提升（SVD 动画）", layout="wide")
+    st.title("二维到三维提升：用 SVD 理解 3x2 线性变换")
 
     # Camera persistence state
     if "plotly_camera_3x2" not in st.session_state:
@@ -686,15 +686,15 @@ def main():
     if "uirevision_key_3x2" not in st.session_state:
         st.session_state.uirevision_key_3x2 = "keep_camera_3x2_v1"
 
-    st.sidebar.header("Random 2D points")
-    seed = st.sidebar.slider("Random seed", 0, 100, 0, 1)
+    st.sidebar.header("随机二维点云")
+    seed = st.sidebar.slider("随机种子", 0, 100, 0, 1)
 
     st.sidebar.markdown("---")
-    st.sidebar.header("3×2 transformation matrix A")
+    st.sidebar.header("3x2 变换矩阵 A")
 
-    mode = st.sidebar.radio("Define A by:", ["Preset: simple embedding", "Manual 3×2 entries"], index=1)
+    mode = st.sidebar.radio("矩阵构造方式：", ["预设：简单嵌入", "手动输入 3x2"], index=1)
 
-    if mode == "Preset: simple embedding":
+    if mode == "预设：简单嵌入":
         A = np.array([[1.0, 0.0],
                       [0.0, 1.0],
                       [0.0, 0.0]])
@@ -712,13 +712,13 @@ def main():
                       [a21, a22],
                       [a31, a32]])
 
-    show_arrows = st.sidebar.checkbox("Show arrows from 2D to 3D image", value=True)
+    show_arrows = st.sidebar.checkbox("显示二维点到三维像的箭头", value=True)
 
     st.sidebar.markdown("---")
     t = st.sidebar.slider(
-        "SVD path slider (0 → 3)",
+        "SVD 路径滑块（0 → 3）",
         min_value=0.0, max_value=3.0, value=3.0, step=0.01,
-        help="Stage 1 (0–1): rotate by V. Stage 2 (1–2): stretch by Σ. Stage 3 (2–3): rotate in 3D by U."
+        help="阶段 1（0–1）：由 V 先旋转二维输入；阶段 2（1–2）：由 Σ 做伸缩；阶段 3（2–3）：由 U 把结果旋转到三维空间。"
     )
 
     points_2d = generate_random_cluster_2d(n_points=30, seed=seed)
@@ -732,7 +732,7 @@ def main():
     plane_coords_t = plane_coords_3x2(points_2d, t, s, V)
     square_plane_t = plane_coords_3x2(square_2d, t, s, V)
 
-    st.subheader("Current 3×2 matrix A")
+    st.subheader("当前 3x2 矩阵 A")
     st.latex(
         r"""
         A =
@@ -750,7 +750,7 @@ def main():
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        st.subheader("3D view (drag to rotate, view persists)")
+        st.subheader("三维视图（可拖拽旋转，视角会保留）")
         fig3d = make_3d_figure(
             points_2d=points_2d,
             points_3d_t=points_3d_t,
@@ -778,17 +778,17 @@ def main():
         # push the right panel down so it visually aligns with the 3D plot area
         st.markdown("<div style='margin-top: 70px;'></div>", unsafe_allow_html=True)
         
-        st.subheader("2D view: input plane R²")
+        st.subheader("二维视图：输入平面 R²")
         st.markdown("<div style='margin-top: 70px;'></div>", unsafe_allow_html=True)
         
         fig2d = make_2d_figure(points_2d, plane_coords_t, square_2d, square_plane_t)
         st.pyplot(fig2d)
 
     st.markdown("---")
-    st.subheader("GIF animation from the 3×2 SVD path (with square)")
+    st.subheader("生成 3x2 SVD 路径 GIF（含外框方形）")
 
-    if st.button("Generate GIF animation (svd3x2_animation.gif)"):
-        with st.spinner("Generating 3×2 SVD GIF animation..."):
+    if st.button("生成 GIF 动画（svd3x2_animation.gif）"):
+        with st.spinner("正在生成 3x2 SVD GIF 动画..."):
             try:
                 create_animation_gif_3x2(
                     filename="svd3x2_animation.gif",
@@ -802,9 +802,9 @@ def main():
                     pause_seconds=1.0,
                     show_arrows=show_arrows,
                 )
-                st.success("Animation saved as svd3x2_animation.gif")
+                st.success("动画已保存为 svd3x2_animation.gif")
             except Exception as e:
-                st.error(f"Failed to create animation. Error: {e}")
+                st.error(f"动画生成失败：{e}")
 
     if os.path.exists("svd3x2_animation.gif"):
         st.image("svd3x2_animation.gif")

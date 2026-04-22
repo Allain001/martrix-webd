@@ -658,44 +658,44 @@ def main():
     if "uirevision_key" not in st.session_state:
         st.session_state.uirevision_key = "keep_camera_mesh_template_v1"
 
-    st.title("3D Linear Transformation & Eigenvectors (SVD Slider + GIF)")
+    st.title("三维线性变换与特征向量")
 
     st.write(
         """
-        This app shows how a **3×3 matrix** transforms a random cluster of **30 points** in 3D,
-        plus an outer reference cube, using a **rotation–stretch–rotation** SVD path.
+        这个页面展示 **3x3 矩阵** 如何作用在三维空间中的 **30 个随机点** 与参考立方体上，
+        并通过“旋转 - 伸缩 - 旋转”的 SVD 路径把整个变化过程分阶段可视化。
         """
     )
 
     # Sidebar: random seed
-    st.sidebar.header("Random points")
-    seed = st.sidebar.slider("Random seed", 0, 100, 0, 1)
+    st.sidebar.header("随机点云")
+    seed = st.sidebar.slider("随机种子", 0, 100, 0, 1)
 
     st.sidebar.markdown("---")
-    st.sidebar.header("Transformation matrix A")
+    st.sidebar.header("变换矩阵 A")
 
     mode = st.sidebar.radio(
-        "Define A by:",
-        ["Diagonal scaling", "XYZ rotation + scaling", "Symmetric 3×3", "Manual 3×3"],
+        "矩阵构造方式：",
+        ["对角缩放", "XYZ 旋转 + 缩放", "对称 3x3", "手动输入 3x3"],
         index=2,  # default to Symmetric 3×3
     )
 
-    if mode == "Diagonal scaling":
-        sx = st.sidebar.slider("Scale in x", 0.1, 3.0, 1.5, 0.1)
-        sy = st.sidebar.slider("Scale in y", 0.1, 3.0, 1.0, 0.1)
-        sz = st.sidebar.slider("Scale in z", 0.1, 3.0, 0.7, 0.1)
+    if mode == "对角缩放":
+        sx = st.sidebar.slider("x 方向缩放", 0.1, 3.0, 1.5, 0.1)
+        sy = st.sidebar.slider("y 方向缩放", 0.1, 3.0, 1.0, 0.1)
+        sz = st.sidebar.slider("z 方向缩放", 0.1, 3.0, 0.7, 0.1)
         A = np.diag([sx, sy, sz])
 
-    elif mode == "XYZ rotation + scaling":
-        st.sidebar.write("Rotation angles (degrees):")
-        theta_x_deg = st.sidebar.slider("Rotate about x-axis", -180, 180, 20)
-        theta_y_deg = st.sidebar.slider("Rotate about y-axis", -180, 180, 30)
-        theta_z_deg = st.sidebar.slider("Rotate about z-axis", -180, 180, 40)
+    elif mode == "XYZ 旋转 + 缩放":
+        st.sidebar.write("旋转角度（度）：")
+        theta_x_deg = st.sidebar.slider("绕 x 轴旋转", -180, 180, 20)
+        theta_y_deg = st.sidebar.slider("绕 y 轴旋转", -180, 180, 30)
+        theta_z_deg = st.sidebar.slider("绕 z 轴旋转", -180, 180, 40)
 
-        st.sidebar.write("Scaling along axes:")
-        sx = st.sidebar.slider("Scale in x", 0.1, 3.0, 1.5, 0.1)
-        sy = st.sidebar.slider("Scale in y", 0.1, 3.0, 1.0, 0.1)
-        sz = st.sidebar.slider("Scale in z", 0.1, 3.0, 0.7, 0.1)
+        st.sidebar.write("轴向缩放：")
+        sx = st.sidebar.slider("x 方向缩放", 0.1, 3.0, 1.5, 0.1)
+        sy = st.sidebar.slider("y 方向缩放", 0.1, 3.0, 1.0, 0.1)
+        sz = st.sidebar.slider("z 方向缩放", 0.1, 3.0, 0.7, 0.1)
 
         tx = np.deg2rad(theta_x_deg)
         ty = np.deg2rad(theta_y_deg)
@@ -725,8 +725,8 @@ def main():
         S = np.diag([sx, sy, sz])
         A = R @ S
 
-    elif mode == "Symmetric 3×3":
-        st.sidebar.write("Enter entries; off-diagonals are tied (a_ij = a_ji):")
+    elif mode == "对称 3x3":
+        st.sidebar.write("请输入矩阵元素；非对角线元素满足 a_ij = a_ji：")
 
         row1 = st.sidebar.columns(3)
         with row1[0]:
@@ -759,7 +759,7 @@ def main():
         ])
 
     else:
-        st.sidebar.write("Enter the entries of the 3×3 matrix A:")
+        st.sidebar.write("请输入 3x3 矩阵 A 的全部元素：")
         c1, c2, c3 = st.sidebar.columns(3)
         with c1:
             a11 = st.number_input("a11", value=1.0, step=0.1, key="a11")
@@ -781,7 +781,7 @@ def main():
         ])
 
     show_arrows = st.sidebar.checkbox(
-        "Show arrows from original to transformed points",
+        "显示原始点到变换后点的箭头",
         value=True,
     )
 
@@ -814,7 +814,7 @@ def main():
     # Slider
     st.sidebar.markdown("---")
     t = st.sidebar.slider(
-        "SVD path (0 = I, 1 = V, 2 = V+Σ̃, 3 = full A via Uᵀ)",
+        "SVD 路径（0=I，1=V，2=V+Σ，3=完整 A）",
         min_value=0.0,
         max_value=3.0,
         value=3.0,
@@ -826,7 +826,7 @@ def main():
     cube_t = cube_corners @ M
 
     # Show A
-    st.subheader("Transformation matrix A")
+    st.subheader("当前变换矩阵 A")
     st.latex(
         r"""
         A =
@@ -849,7 +849,7 @@ def main():
     lam2 = format_eig_latex(evals[1])
     lam3 = format_eig_latex(evals[2])
 
-    st.subheader("Eigenvalues of A")
+    st.subheader("矩阵 A 的特征值")
     st.latex(
         rf"""
         \lambda_1 = {lam1},\quad
@@ -862,21 +862,19 @@ def main():
     n_real = real_mask.sum()
     if n_real > 0:
         st.write(
-            f"We draw eigenvectors in 3D for the {n_real} eigenvalue(s) "
-            "whose imaginary part is essentially zero. "
-            "Eigenvectors corresponding to complex eigenvalues are not drawn."
+            f"当前共有 {n_real} 个特征值的虚部近似为 0，因此会在三维图中绘制对应的实特征向量。"
+            "对于复特征值，对应特征向量不在实三维空间中，这里不再绘制。"
         )
     else:
         st.write(
-            "All three eigenvalues have nonzero imaginary parts. "
-            "Their eigenvectors live in complex 3D space, so we do not draw any eigenvectors in the 3D diagram."
+            "当前三个特征值都带有非零虚部，它们的特征向量位于复空间，因此这里不在实三维图中绘制。"
         )
 
     # Layout
     col1, col2 = st.columns([4, 1])
 
     with col1:
-        st.subheader("3D Visualization (drag to rotate, view persists)")
+        st.subheader("三维可视化（可拖拽旋转，视角会保留）")
 
         fig_3d = make_3d_figure(
             points=points,
@@ -908,35 +906,35 @@ def main():
         update_camera_from_events(events)
 
         # Removed the Reset camera button block
-        st.caption("Rotate/zoom the plot, click it once somewhere in the figure, then move the SVD slider. The view should stay.")
+        st.caption("可以先拖拽缩放图形，再移动 SVD 滑块，当前视角会尽量保持不变。")
 
     with col2:
-        st.subheader("Rotation + stretching view (3D rotational SVD)")
+        st.subheader("旋转与伸缩分解视图")
         st.markdown(
             r"""
-We build a rotation-friendly SVD:
+这里使用更适合几何讲解的旋转型 SVD：
 
 $$
 A = \tilde U \,\tilde\Sigma\, \tilde V^T,
 $$
 
-where:
-- $\tilde U$ and $\tilde V$ are proper rotations (determinant $=1$),
-- $\tilde\Sigma$ is diagonal and may carry signs (a signed scaling).
+其中：
+- $\tilde U$ 和 $\tilde V$ 是行列式为 1 的纯旋转，
+- $\tilde\Sigma$ 是带符号的对角伸缩矩阵。
 
 ---
 
-**Axis–angle explanation.**  
-Any $3\times 3$ rotation matrix $R$ can be written as a rotation by an angle $\theta$
-around some unit axis $\mathbf u$:
+**轴角解释。**  
+任意 $3\times 3$ 旋转矩阵 $R$ 都可以写成绕单位轴 $\mathbf u$
+旋转角度 $\theta$ 的形式：
 
 $$
 R = I \cos\theta + (1-\cos\theta)\,\mathbf u \mathbf u^T + \sin\theta\,[\mathbf u]_\times,
 $$
 
-where $[\mathbf u]_\times$ is the skew-symmetric matrix built from $\mathbf u$.
-We use this axis–angle form (Rodrigues’ formula) to interpolate smoothly
-from the identity to $\tilde V$ and to $\tilde U^T$.
+其中 $[\mathbf u]_\times$ 是由 $\mathbf u$ 构造的反对称矩阵。
+页面使用这种轴角形式和 Rodrigues 公式，
+把恒等变换平滑插值到 $\tilde V$ 与 $\tilde U^T$，便于观察三阶段变化。
 """
         )
 
@@ -1007,15 +1005,14 @@ from the identity to $\tilde V$ and to $\tilde U^T$.
 
     st.markdown("---")
     st.caption(
-        "Drag the slider slowly while you explain: "
-        "I → V → V+Σ̃ → V Σ̃ Uᵀ (= Aᵀ), and connect it to the axis–angle rotations above."
+        "建议拖动滑块时按“恒等变换 → 旋转 V → 伸缩 Σ → 最终旋转 U”的顺序进行讲解。"
     )
 
     # ---------- GIF generation ----------
-    st.markdown("## GIF animation from the 3D SVD path")
+    st.markdown("## 生成三维 SVD 路径 GIF")
 
-    if st.button("Generate 3D GIF animation (svd3d_animation.gif)"):
-        with st.spinner("Generating 3D GIF animation (this may take a bit)..."):
+    if st.button("生成三维 GIF 动画（svd3d_animation.gif）"):
+        with st.spinner("正在生成三维 GIF 动画，请稍候..."):
             try:
                 create_animation_gif_3d(
                     filename="svd3d_animation.gif",
@@ -1030,9 +1027,9 @@ from the identity to $\tilde V$ and to $\tilde U^T$.
                     fps=30,
                     show_arrows=show_arrows,
                 )
-                st.success("Animation saved as svd3d_animation.gif")
+                st.success("动画已保存为 svd3d_animation.gif")
             except Exception as e:
-                st.error(f"Failed to create animation. Error: {e}")
+                st.error(f"动画生成失败：{e}")
 
     if os.path.exists("svd3d_animation.gif"):
         vc1, vc2, vc3 = st.columns([1, 2, 1])

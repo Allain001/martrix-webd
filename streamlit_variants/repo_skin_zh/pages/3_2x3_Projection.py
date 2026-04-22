@@ -808,52 +808,52 @@ def main():
     if "uirevision_key_2x3" not in st.session_state:
         st.session_state.uirevision_key_2x3 = "keep_camera_2x3_v1"
 
-    st.title("2×3 Linear Transformation: Projecting 3D to 2D via SVD (Cartoon + GIF)")
+    st.title("三维到二维投影：用 SVD 理解 2x3 线性变换")
 
     st.write(
         r"""
-This app shows how a **2×3 matrix** maps points in **$\mathbb R^3$** into **$\mathbb R^2$**.
+这个页面展示 **2x3 矩阵** 如何把 **$\mathbb R^3$** 中的点映射到 **$\mathbb R^2$**。
 
-We factor
+我们把矩阵分解为
 $$
 A = U \Sigma V^T
 $$
-and think in row-vector form:
+并采用行向量视角：
 $$
 y = x A^T = x V \Sigma^T U^T.
 $$
 
-Geometric idea in a local 3D coordinate system $(x',y',z')$ given by $V$:
+在由 $V$ 给出的局部三维坐标系 $(x',y',z')$ 中，可以这样理解：
 
-1. Use $V$ to define a *tilted image plane* spanned by its first two columns (the local $x'y'$-plane).
-2. In $(x',y',z')$, $\Sigma^T$ stretches along $x'$ and $y'$ by $\sigma_1,\sigma_2$
-   and squashes the $z'$ direction to 0.
-3. Still in $(x',y',z')$, $U^T$ rotates coordinates inside that plane.
+1. 先用 $V$ 的前两列定义一个“倾斜的图像平面”，也就是局部的 $x'y'$ 平面。
+2. 在 $(x',y',z')$ 中，$\Sigma^T$ 沿 $x'$ 与 $y'$ 方向按 $\sigma_1,\sigma_2$ 伸缩，
+   同时把 $z'$ 方向压缩到 0。
+3. 随后在同一个平面内再由 $U^T$ 做二维旋转。
 
-For drawing, we always convert back from new coords $(x',y',z')$ to the original
-$(x,y,z)$ via $V^T$.
+为了绘图，我们总会再用 $V^T$ 把局部坐标 $(x',y',z')$
+转换回原始坐标系 $(x,y,z)$。
 """
     )
 
     # Sidebar: random seed
-    st.sidebar.header("Random 3D points")
-    seed = st.sidebar.slider("Random seed", 0, 100, 0, 1)
+    st.sidebar.header("随机三维点云")
+    seed = st.sidebar.slider("随机种子", 0, 100, 0, 1)
 
     st.sidebar.markdown("---")
-    st.sidebar.header("2×3 transformation matrix A")
+    st.sidebar.header("2x3 变换矩阵 A")
 
     mode = st.sidebar.radio(
-        "Define A by:",
-        ["Preset: projection to xy-plane", "Manual 2×3 entries"],
+        "矩阵构造方式：",
+        ["预设：投影到 xy 平面", "手动输入 2x3"],
         index=1
     )
 
-    if mode == "Preset: projection to xy-plane":
+    if mode == "预设：投影到 xy 平面":
         A = np.array([
             [1.0, 0.0, 0.0],
             [0.0, 1.0, 0.0],
         ])
-        st.sidebar.write("Using preset projection:")
+        st.sidebar.write("当前使用预设投影：")
         st.sidebar.latex(
             r"""
             A =
@@ -864,7 +864,7 @@ $(x,y,z)$ via $V^T$.
             """
         )
     else:
-        st.sidebar.write("Enter entries for the 2×3 matrix A:")
+        st.sidebar.write("请输入 2x3 矩阵 A 的元素：")
         c1, c2, c3 = st.sidebar.columns(3)
         with c1:
             # Default matrix requested: [[1, 2, 0], [0, 1, -1]]
@@ -883,21 +883,21 @@ $(x,y,z)$ via $V^T$.
         ])
 
     show_arrows = st.sidebar.checkbox(
-        "Show arrows from original 3D points to SVD images",
+        "显示原始点到各阶段图像的箭头",
         value=True,
     )
 
     st.sidebar.markdown("---")
     t = st.sidebar.slider(
-        "SVD path slider (0 → 3)",
+        "SVD 路径滑块（0 → 3）",
         min_value=0.0,
         max_value=3.0,
         value=3.0,
         step=0.01,
         help=(
-            "Stage 1 (0–1): rotate 3D by V; "
-            "Stage 2 (1–2): stretch/compress in (x′,y′,z′); "
-            "Stage 3 (2–3): rotate inside the x′y′ plane by U."
+            "阶段 1（0–1）：由 V 完成三维旋转；"
+            "阶段 2（1–2）：在 (x′, y′, z′) 中做伸缩；"
+            "阶段 3（2–3）：在 x′y′ 平面内由 U 做二维旋转。"
         )
     )
 
@@ -963,7 +963,7 @@ $(x,y,z)$ via $V^T$.
     )
 
     # ---------- Show A ----------
-    st.subheader("Current 2×3 matrix A")
+    st.subheader("当前 2x3 矩阵 A")
     st.latex(
         r"""
         A =
@@ -981,26 +981,23 @@ $(x,y,z)$ via $V^T$.
     # Stage description (kept)
     if t <= 1.0:
         stage_text = (
-            "Stage 1: 3D rotation from the original orientation to the new "
-            "axes defined by V (rigid rotation of the whole cloud and cube)."
+            "阶段 1：由 V 把原始三维坐标系旋转到新的局部坐标系，整个点云和立方体一起刚性旋转。"
         )
     elif t <= 2.0:
         stage_text = (
-            "Stage 2: In the new coordinates (x′,y′,z′), stretch along x′ and y′ "
-            "and compress z′, then convert back via Vᵀ."
+            "阶段 2：在局部坐标 (x′, y′, z′) 中沿 x′、y′ 方向伸缩，并把 z′ 压缩到 0，再通过 Vᵀ 转回原坐标系。"
         )
     else:
         stage_text = (
-            "Stage 3: In the new coordinates (x′,y′,z′), with z′ already near 0, "
-            "rotate inside the x′y′-plane according to U, then convert back via Vᵀ."
+            "阶段 3：在 z′ 已经接近 0 的前提下，在 x′y′ 平面内按 U 做二维旋转，随后再映射回原坐标系。"
         )
 
-    st.markdown(f"**Current SVD stage (t = {t:.2f})** – {stage_text}")
+    st.markdown(f"**当前 SVD 阶段（t = {t:.2f}）**：{stage_text}")
 
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        st.subheader("3D view: original points and SVD path (drag to rotate)")
+        st.subheader("三维视图：原始点云与 SVD 路径")
 
         fig3d = make_3d_figure(
             points_3d=points_3d,
@@ -1032,41 +1029,37 @@ $(x,y,z)$ via $V^T$.
         update_camera_from_events(events)
 
         st.caption(
-            "The translucent sheet is the image plane span(V₁, V₂): "
-            "the local x′y′-plane determined by the 3D rotation V. "
-            "In Stage 2 we scale in (x′,y′,z′), in Stage 3 we rotate in the x′y′ "
-            "plane, always converting back to (x,y,z) for plotting."
+            "半透明平面就是由 V₁、V₂ 张成的图像平面，也就是经过 V 旋转后得到的局部 x′y′ 平面。"
+            "阶段 2 在这个局部坐标中做伸缩，阶段 3 在该平面内旋转，最后再映射回原始三维空间。"
         )
 
     with col2:
         st.markdown("<div style='margin-top: 70px;'></div>", unsafe_allow_html=True)
-        st.subheader("2D view: plane coordinates (x′, y′)")
+        st.subheader("二维视图：平面坐标 (x′, y′)")
         st.markdown("<div style='margin-top: 70px;'></div>", unsafe_allow_html=True)
         fig2d = make_2d_figure(coords_2d_t)
         st.pyplot(fig2d)
         st.caption(
-            "Each dot shows the transformed point expressed in plane coordinates "
-            "(x′, y′) with respect to the basis (V₁, V₂). "
-            "These are the same points as in the 3D view, but seen in the "
-            "intrinsic image-plane coordinates."
+            "每个点表示同一批样本在图像平面基底 (V₁, V₂) 下的坐标。"
+            "它们与左侧三维视图中的点完全对应，只是换成了平面内部的坐标表示。"
         )
 
     st.markdown("---")
-    st.subheader("SVD interpretation of a 2×3 map")
+    st.subheader("2x3 映射的 SVD 几何解释")
 
     st.write(
         r"""
-For a **2×3** matrix $A$, a singular value decomposition is
+对于 **2x3** 矩阵 $A$，其奇异值分解为
 
 $$
 A = U \Sigma V^T,
 $$
 
-where:
+其中：
 
-- $U$ is $2\times 2$ orthogonal (rotation/reflection in the output plane),
-- $V$ is $3\times 3$ orthogonal (rotation/reflection in 3D),
-- $\Sigma$ is $2\times 3$ with nonnegative singular values $\sigma_1,\sigma_2$ on the diagonal:
+- $U$ 是 $2\times 2$ 正交矩阵，对应输出平面中的旋转或镜像，
+- $V$ 是 $3\times 3$ 正交矩阵，对应输入三维空间中的旋转或镜像，
+- $\Sigma$ 是 $2\times 3$ 的对角伸缩矩阵，对角线上为非负奇异值 $\sigma_1,\sigma_2$：
 
 $$
 \Sigma =
@@ -1076,20 +1069,19 @@ $$
 \end{bmatrix}.
 $$
 
-In the row-vector viewpoint:
+在行向量视角下：
 $$
 y = x A^T = x V \Sigma^T U^T.
 $$
 
-We interpret:
+其几何含义可以概括为：
 
-1. $V$ defines a **local 3D coordinate system** $(x',y',z')$; its first two columns span the
-   image plane (our tilted output plane).
-2. $\Sigma^T$ stretches along $x'$ and $y'$ by $\sigma_1,\sigma_2$ and squashes $z'$ to 0.
-3. $U^T$ rotates the resulting 2D coordinates inside that plane.
+1. $V$ 先定义一个新的局部坐标系 $(x',y',z')$，其中前两列张成图像平面。
+2. $\Sigma^T$ 沿 $x'$ 与 $y'$ 方向按奇异值伸缩，并把 $z'$ 压缩为 0。
+3. $U^T$ 再在该平面内完成最终的二维旋转。
 
-For the cartoon, Stage 1 shows the rotation, Stage 2 the stretch/compression in $(x',y',z')$,
-and Stage 3 the in-plane rotation in $(x',y',0)$, always mapped back by $V^T$.
+在动画里，阶段 1 展示三维旋转，阶段 2 展示局部坐标中的伸缩与压缩，
+阶段 3 展示平面内的最终旋转，整个过程都会通过 $V^T$ 映射回原坐标系以便观察。
 """
     )
 
@@ -1133,15 +1125,15 @@ and Stage 3 the in-plane rotation in $(x',y',0)$, always mapped back by $V^T$.
 
     st.markdown(
         r"""
-### Rotation axis and angle of $V$
+### 旋转矩阵 $V$ 的轴角解释
 
-We can interpret $V$ (the 3D orthogonal factor) in axis–angle form:
+可以把三维正交矩阵 $V$ 看成绕某条轴旋转一定角度：
 
 $$
 R_V = V \approx R(\mathbf u_V,\,\theta_V),
 $$
 
-where $\mathbf u_V$ is a unit axis in $\mathbb R^3$ and $\theta_V$ is a rotation angle.
+其中 $\mathbf u_V$ 是单位旋转轴，$\theta_V$ 是对应的旋转角。
 """
     )
 
@@ -1158,11 +1150,10 @@ where $\mathbf u_V$ is a unit axis in $\mathbb R^3$ and $\theta_V$ is a rotation
 
     st.markdown(
         r"""
-### Approximate rotation angle of $U$
+### 输出平面中 $U$ 的旋转角
 
-If $U$ is close to a pure 2D rotation, its first column is approximately
-$[\cos\theta_U,\ \sin\theta_U]^T$.
-Here:
+如果 $U$ 接近纯二维旋转，那么它的第一列可以近似写成
+$[\cos\theta_U,\ \sin\theta_U]^T$。这里有：
 
 $$
 \theta_U \approx %.1f^\circ,\quad
@@ -1174,16 +1165,14 @@ $$
     )
 
     st.caption(
-        "Use t ∈ [0,1] to explain the 3D rotation by V, "
-        "t ∈ [1,2] to show stretching/compression in (x′,y′,z′), "
-        "and t ∈ [2,3] to show rotation inside the x′y′ plane."
+        "建议用 t ∈ [0,1] 讲三维旋转，用 t ∈ [1,2] 讲局部坐标中的伸缩，再用 t ∈ [2,3] 讲图像平面内的最终旋转。"
     )
 
     # ---------- GIF animation section ----------
-    st.markdown("## GIF animation from the 2×3 SVD path")
+    st.markdown("## 生成 2x3 SVD 路径 GIF")
 
-    if st.button("Generate GIF animation (svd2x3_animation.gif)"):
-        with st.spinner("Generating 2×3 SVD GIF animation..."):
+    if st.button("生成 GIF 动画（svd2x3_animation.gif）"):
+        with st.spinner("正在生成 2x3 SVD GIF 动画..."):
             try:
                 create_animation_gif_2x3(
                     filename="svd2x3_animation.gif",
@@ -1198,9 +1187,9 @@ $$
                     pause_seconds=1.0,
                     show_arrows=show_arrows,
                 )
-                st.success("Animation saved as svd2x3_animation.gif")
+                st.success("动画已保存为 svd2x3_animation.gif")
             except Exception as e:
-                st.error(f"Failed to create animation. Error: {e}")
+                st.error(f"动画生成失败：{e}")
 
     if os.path.exists("svd2x3_animation.gif"):
         st.image("svd2x3_animation.gif")
