@@ -14,46 +14,6 @@ st.markdown(
 )
 
 st.set_page_config(page_title="martrixvis", layout="wide")
-st.title("martrixvis")
-
-st.markdown(
-    """
-    <div style="font-size:30px; font-weight:650; margin-top:-10px; margin-left: 180px;">
-        看见线性代数
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-col_text, col_logo = st.columns([6, 1])
-
-with col_text:
-    st.markdown(
-        """
-        <div style="margin-top:22px; margin-left:230px; font-size:21px; line-height:1.7;">
-            <div style="font-weight:600;">交互式线性代数实验站</div>
-            <div style="margin-left:24px;">
-                从二维变换、三维变换到 SVD、PCA 与最小二乘，
-                把抽象公式还原成可观察、可讲解、可复盘的几何过程。
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-with col_logo:
-    st.markdown("<div style='padding-left:160px;'></div>", unsafe_allow_html=True)
-
-st.markdown(
-    """
-### 关于本站
-
-- 用动态图形解释二维与三维矩阵变换
-- 用 SVD 和 PCA 说明旋转、伸缩、投影与压缩
-- 用几何视角理解最小二乘与过定方程组
-- 支持课堂演示、答辩展示与课后自学
-"""
-)
 
 BASE_DIR = Path(__file__).parent
 VIDEOS_DIR = BASE_DIR / "videos"
@@ -65,137 +25,292 @@ def load_gif_b64(path_str: str, file_mtime: float) -> str:
         return base64.b64encode(f.read()).decode("utf-8")
 
 
-def autoplay_gif_panel(gif_path: Path, title: str, height: int = 400) -> None:
+def autoplay_gif_panel(gif_path: Path, height: int = 330) -> None:
     if gif_path.exists():
-        st.markdown(title)
         b64 = load_gif_b64(str(gif_path), gif_path.stat().st_mtime)
         gif_html = (
             f'<img src="data:image/gif;base64,{b64}" '
-            'style="width: 100%; max-width: 520px; height: auto; margin: 0 auto; display: block;" />'
+            'style="width: 100%; max-width: 560px; height: auto; margin: 0 auto; display: block; border-radius: 14px;" />'
         )
         components.html(gif_html, height=height)
     else:
         st.info(f"{gif_path.as_posix()} 未找到。")
 
 
-col1, col2 = st.columns(2)
+st.markdown(
+    """
+    <style>
+      .mv-hero {
+        padding: 18px 8px 8px 8px;
+      }
+      .mv-kicker {
+        color: #2563eb;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .mv-title {
+        font-size: 52px;
+        font-weight: 800;
+        line-height: 1.08;
+        color: #111827;
+        margin-top: 10px;
+      }
+      .mv-subtitle {
+        font-size: 19px;
+        line-height: 1.9;
+        color: #4b5563;
+        max-width: 860px;
+        margin-top: 18px;
+      }
+      .mv-note {
+        margin-top: 18px;
+        padding: 14px 18px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+        border: 1px solid #dbeafe;
+        color: #334155;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+      .mv-band {
+        margin-top: 28px;
+        padding: 18px 22px;
+        border-radius: 18px;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      .mv-band-title {
+        font-size: 15px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #67e8f9;
+        font-weight: 700;
+      }
+      .mv-band-body {
+        margin-top: 10px;
+        font-size: 18px;
+        line-height: 1.75;
+      }
+      .mv-section-title {
+        font-size: 30px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-top: 20px;
+      }
+      .mv-section-body {
+        font-size: 17px;
+        color: #475569;
+        line-height: 1.8;
+        margin-top: 8px;
+        max-width: 900px;
+      }
+      .mv-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 20px 22px;
+        background: #ffffff;
+        min-height: 188px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+      }
+      .mv-card-tag {
+        color: #7c3aed;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .mv-card-title {
+        font-size: 25px;
+        font-weight: 800;
+        color: #111827;
+        margin-top: 10px;
+      }
+      .mv-card-text {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #475569;
+        margin-top: 12px;
+      }
+      .mv-route {
+        border-left: 4px solid #2563eb;
+        padding: 10px 0 10px 18px;
+        margin-top: 6px;
+      }
+      .mv-route strong {
+        color: #0f172a;
+      }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-with col1:
-    st.subheader("二维变换")
-    st.write("用 2x2 矩阵、特征向量和 SVD 观察平面中的旋转、拉伸、剪切与面积变化。")
-    if st.button("进入二维变换", key="h2_2d"):
+st.markdown(
+    """
+    <div class="mv-hero">
+      <div class="mv-kicker">martrixvis</div>
+      <div class="mv-title">把线性代数讲成<br/>能看见的图形过程</div>
+      <div class="mv-subtitle">
+        用图形、动画和参数交互，把二维变换、三维空间、投影、PCA、SVD 与最小二乘这些概念放到同一套学习路径里。
+      </div>
+      <div class="mv-note">
+        答辩推荐路线：<strong>首页 → 二维变换 → 最小二乘</strong>。如果评委继续追问，再补充投影、PCA 或图像压缩。
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+hero_left, hero_right = st.columns([7, 5], gap="large")
+
+with hero_left:
+    st.markdown(
+        """
+        <div class="mv-band">
+          <div class="mv-band-title">推荐演示路线</div>
+          <div class="mv-band-body">
+            先用二维变换讲清矩阵怎样改变图形，再用最小二乘说明什么叫最佳近似。
+            这一前一后，最能体现网站的教学价值。
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="mv-section-title">首页只保留三条主线</div>
+        <div class="mv-section-body">
+          先看几何变化，再看数据结构，最后看模型近似。答辩时不需要把每个模块都点一遍，重点讲清一条完整路径即可。
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with hero_right:
+    autoplay_gif_panel(VIDEOS_DIR / "SVD2x2Demo.gif")
+
+st.markdown("---")
+
+st.markdown(
+    """
+    <div class="mv-section-title">矩阵怎样动起来</div>
+    <div class="mv-section-body">
+      从平面到空间，从投影到提升，把矩阵作用直接变成图形变化。
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+geo_a, geo_b, geo_c = st.columns(3, gap="large")
+
+with geo_a:
+    st.markdown(
+        """
+        <div class="mv-card">
+          <div class="mv-card-tag">Geometry</div>
+          <div class="mv-card-title">二维变换</div>
+          <div class="mv-card-text">
+            用单位正方形、网格和基向量解释 2x2 矩阵的旋转、拉伸与剪切。
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    if st.button("进入二维变换", key="home_2d"):
         st.switch_page("pages/1_2D_Transform.py")
-    autoplay_gif_panel(
-        VIDEOS_DIR / "SVD2x2Demo.gif",
-        "##### 二维 SVD 演示",
-        height=400,
-    )
 
-with col2:
-    st.subheader("三维变换")
-    st.write("观察 3x3 矩阵在空间中的作用方式，以及三维特征向量与 SVD 路径。")
-    if st.button("进入三维变换", key="h2_3d"):
+with geo_b:
+    st.markdown(
+        """
+        <div class="mv-card">
+          <div class="mv-card-tag">Space</div>
+          <div class="mv-card-title">三维变换</div>
+          <div class="mv-card-text">
+            用立方体、点云和特征向量观察 3x3 矩阵如何改变空间结构。
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    if st.button("进入三维变换", key="home_3d"):
         st.switch_page("pages/2_3D_Transform.py")
-    autoplay_gif_panel(
-        VIDEOS_DIR / "SVD3x3Demo.gif",
-        "##### 三维 SVD 演示",
-        height=400,
+
+with geo_c:
+    st.markdown(
+        """
+        <div class="mv-card">
+          <div class="mv-card-tag">Projection</div>
+          <div class="mv-card-title">投影与提升</div>
+          <div class="mv-card-text">
+            用降维和升维两页，解释维度变化时信息如何保留、映射与重组。
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
+    proj_btn, lift_btn = st.columns(2)
+    with proj_btn:
+        if st.button("投影", key="home_projection"):
+            st.switch_page("pages/3_2x3_Projection.py")
+    with lift_btn:
+        if st.button("提升", key="home_lifting"):
+            st.switch_page("pages/4_3x2_Lifting.py")
 
 st.markdown("---")
 
-col3, col4 = st.columns(2)
+left_data, right_data = st.columns([6, 6], gap="large")
 
-with col3:
-    st.subheader("三维到二维投影 (R3 -> R2)")
-    st.write("借助 SVD，把三维点云投影到二维平面，并解释图像平面的生成过程。")
-    if st.button("进入三维到二维投影", key="h2_2x3"):
-        st.switch_page("pages/3_2x3_Projection.py")
-    autoplay_gif_panel(
-        VIDEOS_DIR / "SVD2x3ProjectionDemo.gif",
-        "##### 三维到二维投影演示",
-        height=400,
+with left_data:
+    st.markdown(
+        """
+        <div class="mv-section-title">数据里的主方向</div>
+        <div class="mv-section-body">
+          PCA 和 SVD 图像压缩一起回答一个问题：怎样用更少的信息保留主要结构。
+        </div>
+        <div class="mv-route">
+          <strong>PCA：</strong> 看主轴、投影和重建。<br/>
+          <strong>SVD 图像压缩：</strong> 看保留秩与重建质量的关系。
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
+    pca_btn, svd_btn = st.columns(2)
+    with pca_btn:
+        if st.button("进入 PCA 演示", key="home_pca"):
+            st.switch_page("pages/5_PCA_Demo.py")
+    with svd_btn:
+        if st.button("进入 SVD 图像压缩", key="home_svd_img"):
+            st.switch_page("pages/6_SVDImgCompression.py")
 
-with col4:
-    st.subheader("二维到三维提升 (R2 -> R3)")
-    st.write("借助 SVD，把平面点云提升到三维空间，观察升维后的结构与方向。")
-    if st.button("进入二维到三维提升", key="h2_3x2"):
-        st.switch_page("pages/4_3x2_Lifting.py")
-    autoplay_gif_panel(
-        VIDEOS_DIR / "SVD3x2LiftingDemo.gif",
-        "##### 二维到三维提升演示",
-        height=400,
-    )
+with right_data:
+    autoplay_gif_panel(VIDEOS_DIR / "PCACartoon2D.gif")
 
 st.markdown("---")
 
-col5, col6 = st.columns(2)
+left_fit, right_fit = st.columns([6, 6], gap="large")
 
-with col5:
-    st.subheader("PCA 演示")
-    st.write("把 PCA 看成旋转、投影与重建的组合，理解主成分为什么能够提炼结构。")
-    if st.button("进入 PCA 演示", key="h2_pca"):
-        st.switch_page("pages/5_PCA_Demo.py")
-    autoplay_gif_panel(
-        VIDEOS_DIR / "PCACartoon2D.gif",
-        "##### PCA 演示",
-        height=400,
+with left_fit:
+    autoplay_gif_panel(VIDEOS_DIR / "LSE3D_Demo.gif")
+
+with right_fit:
+    st.markdown(
+        """
+        <div class="mv-section-title">什么叫最佳近似</div>
+        <div class="mv-section-body">
+          最小二乘模块把平面、残差和最优点放进同一视图里，帮助理解“没有精确解时怎样找最好解”。
+        </div>
+        <div class="mv-route">
+          <strong>答辩建议：</strong> 如果只展示两个模块，就展示二维变换和最小二乘。
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-
-with col6:
-    st.subheader("SVD 图像压缩")
-    st.write("保留前 k 个奇异值，观察图像重建质量、能量占比和参数压缩率。")
-    if st.button("进入 SVD 图像压缩", key="h2_svd_img"):
-        st.switch_page("pages/6_SVDImgCompression.py")
-    autoplay_gif_panel(
-        VIDEOS_DIR / "SVD_Img.gif",
-        "##### SVD 图像重建",
-        height=400,
-    )
-
-st.markdown("---")
-
-col7, col8 = st.columns(2)
-
-with col7:
-    st.subheader("PCA 图像压缩")
-    st.write("观察均值图像、主成分、特征脸与重建误差，理解 PCA 的压缩逻辑。")
-    if st.button("进入 PCA 图像压缩", key="h2_pca_img"):
-        st.switch_page("pages/7_PCAImgCompression.py")
-    autoplay_gif_panel(
-        VIDEOS_DIR / "PCAFacesDemo.gif",
-        "##### PCA 人脸重建",
-        height=400,
-    )
-
-with col8:
-    st.subheader("最小二乘")
-    st.write("用平面、交线、残差和最优点理解过定方程组与最小二乘近似。")
-    if st.button("进入最小二乘", key="h2_lse"):
-        st.switch_page("pages/8_LSE.py")
-    autoplay_gif_panel(
-        VIDEOS_DIR / "LSE3D_Demo.gif",
-        "##### 最小二乘三维演示",
-        height=400,
-    )
-
-st.markdown("---")
-st.subheader("访问者地图")
-st.write("查看访问者大致来自哪些地区。")
-
-visitor_map_html = """
-<div style="display:flex; justify-content:center; align-items:center; margin: 10px 0 20px 0;">
-    <iframe
-        src="https://s05.flagcounter.com/map/uX01/size_s/txt_000000/border_CCCCCC/pageviews_1/viewers_0/flags_0/"
-        width="500"
-        height="300"
-        style="border:none;"
-        scrolling="no">
-    </iframe>
-</div>
-<p style="text-align:center; color:gray; font-size:13px;">
-    访问人数与位置为近似统计结果。
-</p>
-"""
-components.html(visitor_map_html, height=400)
+    fit_btn, extra_btn = st.columns(2)
+    with fit_btn:
+        if st.button("进入最小二乘", key="home_lse"):
+            st.switch_page("pages/8_LSE.py")
+    with extra_btn:
+        if st.button("进入 PCA 图像压缩", key="home_pca_img"):
+            st.switch_page("pages/7_PCAImgCompression.py")
